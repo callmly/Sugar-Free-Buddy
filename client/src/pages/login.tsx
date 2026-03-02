@@ -34,11 +34,6 @@ import { useState } from "react";
           throw new Error(data.error || "Authentication failed");
         }
 
-        toast({
-          title: "Sėkmė!",
-          description: isLogin ? "Sėkmingai prisijungėte" : "Paskyra sukurta sėkmingai",
-        });
-
         setLocation("/");
       } catch (error: any) {
         toast({
