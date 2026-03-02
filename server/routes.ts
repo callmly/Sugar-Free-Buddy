@@ -66,6 +66,17 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
     next();
 };
 
+const requireAdmin = async (req: Request, res: Response, next: Function) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    const [user] = await db.select().from(users).where(eq(users.id, req.session.userId));
+    if (!user || user.username !== "Tomas") {
+      return res.status(403).json({ error: "Prieiga tik administratoriui" });
+    }
+    next();
+};
+
 app.get("/api/auth/registration-allowed", async (_req, res) => {
     try {
       const [settings] = await db.select().from(adminSettings).limit(1);
@@ -560,7 +571,7 @@ app.get("/api/streak", requireAuth, async (req, res) => {
 });
 
 // Admin routes
-app.get("/api/admin/settings", requireAuth, async (req, res) => {
+app.get("/api/admin/settings", requireAdmin, async (req, res) => {
     try {
       const [settings] = await db.select().from(adminSettings).limit(1);
       
@@ -579,7 +590,7 @@ app.get("/api/admin/settings", requireAuth, async (req, res) => {
     }
 });
 
-app.put("/api/admin/settings", requireAuth, async (req, res) => {
+app.put("/api/admin/settings", requireAdmin, async (req, res) => {
     try {
       const { openaiApiKey, openaiModel, customInstructions, chatInstructions, allowRegistration, relapseTime } = req.body;
 
