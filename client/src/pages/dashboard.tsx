@@ -31,11 +31,13 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const [mood, setMood] = useState<number>(3);
-  const [craving, setCraving] = useState<number>(3);
+  const [mood, setMood] = useState<number | null>(null);
+  const [craving, setCraving] = useState<number | null>(null);
   const [note, setNote] = useState<string>("");
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [submittingCheckIn, setSubmittingCheckIn] = useState(false);
+  const [todayCheckIn, setTodayCheckIn] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -102,6 +104,22 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchTodayCheckIn = async () => {
+    try {
+      const res = await fetch("/api/checkins/today");
+      const data = await res.json();
+      setTodayCheckIn(data);
+    } catch {
+      setTodayCheckIn(null);
+    }
+  };
+
+  const openCheckInDialog = () => {
+    fetchTodayCheckIn().then(() => {
+      setCheckInOpen(true);
+    });
+  };
+
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
@@ -124,28 +142,56 @@ export default function DashboardPage() {
 
   const submitCheckIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mood === null || craving === null) {
+      toast({ title: "Klaida", description: "Pasirinkite nuotaiką ir potraukį", variant: "destructive" });
+      return;
+    }
     setSubmittingCheckIn(true);
     try {
-      const res = await fetch("/api/checkins", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mood, craving, note }),
-      });
-      if (!res.ok) throw new Error("Failed to submit check-in");
-      const data = await res.json();
-      setCheckInOpen(false);
-      setMood(3);
-      setCraving(3);
-      setNote("");
+      if (isEditing && todayCheckIn) {
+        const res = await fetch(`/api/checkins/${todayCheckIn.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mood, craving, note }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to update check-in");
+        }
+        setCheckInOpen(false);
+        resetCheckInForm();
+        toast({ title: "Atnaujinta", description: "Savijauta sėkmingai atnaujinta" });
+      } else {
+        const res = await fetch("/api/checkins", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mood, craving, note }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to submit check-in");
+        }
+        const data = await res.json();
+        setCheckInOpen(false);
+        resetCheckInForm();
 
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: "new_message", message: data.chatMessage }));
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify({ type: "new_message", message: data.chatMessage }));
+        }
       }
-    } catch {
-      toast({ title: "Klaida", description: "Nepavyko išsaugoti", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Klaida", description: err.message || "Nepavyko išsaugoti", variant: "destructive" });
     } finally {
       setSubmittingCheckIn(false);
     }
+  };
+
+  const resetCheckInForm = () => {
+    setMood(null);
+    setCraving(null);
+    setNote("");
+    setTodayCheckIn(null);
+    setIsEditing(false);
   };
 
   const logout = async () => {
@@ -197,7 +243,7 @@ export default function DashboardPage() {
             </button>
             <button
               className="flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100"
-              onClick={() => { setMenuOpen(false); setCheckInOpen(true); }}
+              onClick={() => { setMenuOpen(false); openCheckInDialog(); }}
               data-testid="menu-checkin"
             >
               <SmilePlus className="h-5 w-5 text-gray-500" />
@@ -293,22 +339,51 @@ export default function DashboardPage() {
         </form>
       </div>
 
-      <Dialog open={checkInOpen} onOpenChange={setCheckInOpen}>
+      <Dialog open={checkInOpen} onOpenChange={(open) => {
+        setCheckInOpen(open);
+        if (!open) resetCheckInForm();
+      }}>
         <DialogContent className="max-w-sm !bg-white dark:!bg-gray-900 !border-2 !border-gray-300 dark:!border-gray-600 shadow-2xl z-[100]">
           <DialogHeader>
             <DialogTitle className="text-xl">Dienos savijauta</DialogTitle>
-            <DialogDescription>Kaip jaučiuosi šiandien?</DialogDescription>
+            <DialogDescription>
+              {todayCheckIn && !isEditing
+                ? "Šiandien jau pateikėte savijautą"
+                : "Kaip jaučiuosi šiandien?"}
+            </DialogDescription>
           </DialogHeader>
+          {todayCheckIn && !isEditing ? (
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                <div>Nuotaika: <strong>{todayCheckIn.mood}/5</strong></div>
+                <div>Potraukis: <strong>{todayCheckIn.craving}/5</strong></div>
+                {todayCheckIn.note && <div>Pastaba: <em>{todayCheckIn.note}</em></div>}
+              </div>
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => {
+                  setIsEditing(true);
+                  setMood(todayCheckIn.mood);
+                  setCraving(todayCheckIn.craving);
+                  setNote(todayCheckIn.note || "");
+                }}
+                data-testid="button-edit-checkin"
+              >
+                Redaguoti
+              </Button>
+            </div>
+          ) : (
           <form onSubmit={submitCheckIn} className="space-y-5">
             <div className="space-y-2">
               <Label className="text-sm font-medium">Nuotaika</Label>
               <div className="flex justify-between gap-1">
-                {[0, 1, 2, 3, 4, 5].map((val) => (
+                {[1, 2, 3, 4, 5].map((val) => (
                   <button
                     key={val}
                     type="button"
                     onClick={() => setMood(val)}
-                    className={`w-11 h-11 rounded-full text-sm font-semibold transition-all ${
+                    className={`w-12 h-12 rounded-full text-sm font-semibold transition-all ${
                       mood === val
                         ? "bg-purple-500 text-white scale-110 shadow-md"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -320,7 +395,7 @@ export default function DashboardPage() {
                 ))}
               </div>
               <div className="flex justify-between text-[11px] text-gray-400 px-1">
-                <span>Prastai</span>
+                <span>Bloga</span>
                 <span>Puiki</span>
               </div>
             </div>
@@ -328,12 +403,12 @@ export default function DashboardPage() {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Potraukis</Label>
               <div className="flex justify-between gap-1">
-                {[0, 1, 2, 3, 4, 5].map((val) => (
+                {[1, 2, 3, 4, 5].map((val) => (
                   <button
                     key={val}
                     type="button"
                     onClick={() => setCraving(val)}
-                    className={`w-11 h-11 rounded-full text-sm font-semibold transition-all ${
+                    className={`w-12 h-12 rounded-full text-sm font-semibold transition-all ${
                       craving === val
                         ? "bg-orange-500 text-white scale-110 shadow-md"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -366,9 +441,10 @@ export default function DashboardPage() {
               disabled={submittingCheckIn}
               data-testid="button-submit-checkin"
             >
-              {submittingCheckIn ? "Saugoma..." : "Pateikti"}
+              {submittingCheckIn ? "Saugoma..." : isEditing ? "Atnaujinti" : "Pateikti"}
             </Button>
           </form>
+          )}
         </DialogContent>
       </Dialog>
     </div>

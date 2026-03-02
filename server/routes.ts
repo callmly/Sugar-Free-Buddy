@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { db } from "./db";
 import { users, messages, checkIns, adminSettings } from "@shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, gte, lt, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import OpenAI from "openai";
 import { WebSocketServer } from "ws";
@@ -293,6 +293,10 @@ app.get("/api/checkins", requireAuth, async (req, res) => {
 
 app.get("/api/stats", requireAuth, async (req, res) => {
     try {
+      const page = parseInt(req.query.page as string) || 0;
+      const limit = 10;
+      const offset = page * limit;
+
       const allUsers = await db.select({ id: users.id, username: users.username }).from(users);
       const allCheckIns = await db
         .select({
@@ -323,13 +327,43 @@ app.get("/api/stats", requireAuth, async (req, res) => {
           totalCheckins: userCheckins.length,
           avgMood,
           avgCraving,
-          checkins: userCheckins.slice(0, 14),
         };
       });
 
-      res.json(stats);
+      const paginatedEntries = allCheckIns.slice(offset, offset + limit);
+      const hasMore = allCheckIns.length > offset + limit;
+
+      const response: any = { stats, entries: paginatedEntries, hasMore };
+      if (page === 0) {
+        response.chartData = allCheckIns;
+      }
+      res.json(response);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch stats" });
+    }
+});
+
+app.get("/api/checkins/today", requireAuth, async (req, res) => {
+    try {
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+      const [todayCheckIn] = await db
+        .select()
+        .from(checkIns)
+        .where(
+          and(
+            eq(checkIns.userId, req.session.userId!),
+            gte(checkIns.createdAt, startOfDay),
+            lt(checkIns.createdAt, endOfDay)
+          )
+        )
+        .limit(1);
+
+      res.json(todayCheckIn || null);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch today's check-in" });
     }
 });
 
@@ -344,6 +378,30 @@ app.post("/api/checkins", requireAuth, async (req, res) => {
       const moodVal = parseInt(mood);
       const cravingVal = parseInt(craving);
 
+      if (moodVal < 1 || moodVal > 5 || cravingVal < 1 || cravingVal > 5) {
+        return res.status(400).json({ error: "Mood and craving must be between 1 and 5" });
+      }
+
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+      const [existing] = await db
+        .select()
+        .from(checkIns)
+        .where(
+          and(
+            eq(checkIns.userId, req.session.userId!),
+            gte(checkIns.createdAt, startOfDay),
+            lt(checkIns.createdAt, endOfDay)
+          )
+        )
+        .limit(1);
+
+      if (existing) {
+        return res.status(400).json({ error: "Šiandien jau pateikėte savijautą. Galite ją redaguoti." });
+      }
+
       const [checkIn] = await db.insert(checkIns).values({
         userId: req.session.userId!,
         mood: moodVal,
@@ -354,8 +412,8 @@ app.post("/api/checkins", requireAuth, async (req, res) => {
 
       const [sender] = await db.select().from(users).where(eq(users.id, req.session.userId!));
 
-      const moodLabels = ["Labai blogai", "Blogai", "Vidutiniškai", "Gerai", "Labai gerai", "Puikiai"];
-      const cravingLabels = ["Nenoriu", "Šiek tiek", "Vidutiniškai", "Noriu", "Labai noriu", "Neįmanoma atsispirti"];
+      const moodLabels: Record<number, string> = { 1: "Bloga", 2: "Prasta", 3: "Vidutinė", 4: "Gera", 5: "Puiki" };
+      const cravingLabels: Record<number, string> = { 1: "Nenoriu", 2: "Šiek tiek", 3: "Vidutiniškai", 4: "Noriu", 5: "Labai noriu" };
 
       let checkInText = `📊 Dienos savijauta:\n`;
       checkInText += `Nuotaika: ${moodVal}/5 (${moodLabels[moodVal]})\n`;
@@ -444,6 +502,42 @@ Parašyk palaikantį atsakymą lietuviškai (3-6 sakiniais). Palygink su ankstes
     } catch (error) {
       console.error("Check-in error:", error);
       res.status(500).json({ error: "Failed to create check-in" });
+    }
+});
+
+app.put("/api/checkins/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { mood, craving, note } = req.body;
+
+      const moodVal = parseInt(mood);
+      const cravingVal = parseInt(craving);
+
+      if (moodVal < 1 || moodVal > 5 || cravingVal < 1 || cravingVal > 5) {
+        return res.status(400).json({ error: "Mood and craving must be between 1 and 5" });
+      }
+
+      const [existing] = await db.select().from(checkIns).where(eq(checkIns.id, id)).limit(1);
+      if (!existing || existing.userId !== req.session.userId) {
+        return res.status(403).json({ error: "Negalite redaguoti šio įrašo" });
+      }
+
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      if (new Date(existing.createdAt) < startOfDay) {
+        return res.status(400).json({ error: "Galima redaguoti tik šiandienos įrašą" });
+      }
+
+      const [updated] = await db
+        .update(checkIns)
+        .set({ mood: moodVal, craving: cravingVal, note: note || null })
+        .where(eq(checkIns.id, id))
+        .returning();
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Check-in update error:", error);
+      res.status(500).json({ error: "Failed to update check-in" });
     }
 });
 
