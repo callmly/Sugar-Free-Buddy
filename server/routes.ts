@@ -391,8 +391,9 @@ app.get("/api/streak", requireAuth, async (req, res) => {
       const diffMs = now.getTime() - relapseTime.getTime();
       const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
-      res.json({ days, hours, relapseTime: relapseTime.toISOString() });
+      res.json({ days, hours, minutes, relapseTime: relapseTime.toISOString() });
     } catch (error) {
       res.status(500).json({ error: "Failed to calculate streak" });
     }

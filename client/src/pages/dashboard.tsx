@@ -25,7 +25,7 @@ type User = {
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
-  const [streak, setStreak] = useState({ days: 0, hours: 0 });
+  const [streak, setStreak] = useState({ days: 0, hours: 0, minutes: 0 });
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -86,7 +86,7 @@ export default function DashboardPage() {
     try {
       const res = await fetch("/api/streak");
       const data = await res.json();
-      setStreak({ days: data.days, hours: data.hours });
+      setStreak({ days: data.days, hours: data.hours, minutes: data.minutes });
     } catch (error) {
       console.error("Failed to fetch streak:", error);
     }
@@ -170,7 +170,7 @@ export default function DashboardPage() {
       <header className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-4 py-3 flex items-center justify-between shrink-0 shadow-md">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-base font-semibold truncate" data-testid="text-streak">
-            Be saldumynų: {streak.days} d. ir {streak.hours} val.
+            Be saldumynų: {streak.days} d. {streak.hours} val. {streak.minutes} min.
           </span>
         </div>
         <Button
