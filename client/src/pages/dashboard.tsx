@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Menu, X, Send, Home, SmilePlus, BarChart3, LogOut } from "lucide-react";
@@ -35,7 +33,6 @@ export default function DashboardPage() {
 
   const [mood, setMood] = useState<number>(3);
   const [craving, setCraving] = useState<number>(3);
-  const [trigger, setTrigger] = useState<string>("");
   const [note, setNote] = useState<string>("");
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [submittingCheckIn, setSubmittingCheckIn] = useState(false);
@@ -132,16 +129,21 @@ export default function DashboardPage() {
       const res = await fetch("/api/checkins", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mood, craving, trigger, note }),
+        body: JSON.stringify({ mood, craving, note }),
       });
       if (!res.ok) throw new Error("Failed to submit check-in");
-      toast({ title: "Sėkmė!", description: "Dienos savijauta išsaugota" });
+      const data = await res.json();
       setCheckInOpen(false);
       setMood(3);
       setCraving(3);
-      setTrigger("");
       setNote("");
-      setTimeout(fetchMessages, 1000);
+
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: "new_message", message: data.chatMessage }));
+        if (data.coachMessage) {
+          wsRef.current.send(JSON.stringify({ type: "new_message", message: data.coachMessage }));
+        }
+      }
     } catch {
       toast({ title: "Klaida", description: "Nepavyko išsaugoti", variant: "destructive" });
     } finally {
@@ -295,61 +297,75 @@ export default function DashboardPage() {
       </div>
 
       <Dialog open={checkInOpen} onOpenChange={setCheckInOpen}>
-        <DialogContent className="max-w-md !bg-white dark:!bg-gray-900 !border-2 !border-gray-300 dark:!border-gray-600 shadow-2xl z-[100]">
+        <DialogContent className="max-w-sm !bg-white dark:!bg-gray-900 !border-2 !border-gray-300 dark:!border-gray-600 shadow-2xl z-[100]">
           <DialogHeader>
-            <DialogTitle>Dienos savijauta</DialogTitle>
-            <DialogDescription>Kaip jaučiatės šiandien?</DialogDescription>
+            <DialogTitle className="text-xl">Dienos savijauta</DialogTitle>
+            <DialogDescription>Kaip jaučiuosi šiandien?</DialogDescription>
           </DialogHeader>
-          <form onSubmit={submitCheckIn} className="space-y-4">
+          <form onSubmit={submitCheckIn} className="space-y-5">
             <div className="space-y-2">
-              <Label>Nuotaika: {mood}/5</Label>
-              <Slider
-                value={[mood]}
-                onValueChange={(val) => setMood(val[0])}
-                min={1}
-                max={5}
-                step={1}
-              />
+              <Label className="text-sm font-medium">Nuotaika</Label>
+              <div className="flex justify-between gap-1">
+                {[0, 1, 2, 3, 4, 5].map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setMood(val)}
+                    className={`w-11 h-11 rounded-full text-sm font-semibold transition-all ${
+                      mood === val
+                        ? "bg-purple-500 text-white scale-110 shadow-md"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                    data-testid={`button-mood-${val}`}
+                  >
+                    {val}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-between text-[11px] text-gray-400 px-1">
+                <span>Prastai</span>
+                <span>Puiki</span>
+              </div>
             </div>
+
             <div className="space-y-2">
-              <Label>Troškimas: {craving}/5</Label>
-              <Slider
-                value={[craving]}
-                onValueChange={(val) => setCraving(val[0])}
-                min={1}
-                max={5}
-                step={1}
-              />
+              <Label className="text-sm font-medium">Potraukis</Label>
+              <div className="flex justify-between gap-1">
+                {[0, 1, 2, 3, 4, 5].map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setCraving(val)}
+                    className={`w-11 h-11 rounded-full text-sm font-semibold transition-all ${
+                      craving === val
+                        ? "bg-orange-500 text-white scale-110 shadow-md"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                    data-testid={`button-craving-${val}`}
+                  >
+                    {val}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-between text-[11px] text-gray-400 px-1">
+                <span>Nenoriu</span>
+                <span>Labai noriu</span>
+              </div>
             </div>
+
             <div className="space-y-2">
-              <Label>Trigeris</Label>
-              <Select value={trigger} onValueChange={setTrigger} required>
-                <SelectTrigger data-testid="select-trigger">
-                  <SelectValue placeholder="Pasirinkite trigerį" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="vakaras">Vakaras</SelectItem>
-                  <SelectItem value="po pietų">Po pietų</SelectItem>
-                  <SelectItem value="stresas">Stresas</SelectItem>
-                  <SelectItem value="filmai">Filmai</SelectItem>
-                  <SelectItem value="kavinės">Kavinės</SelectItem>
-                  <SelectItem value="kita">Kita</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Pastaba (neprivaloma)</Label>
+              <Label className="text-sm font-medium">Pastaba</Label>
               <Textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Papildomi komentarai..."
+                placeholder="Kaip praėjo diena..."
                 rows={3}
                 data-testid="input-note"
               />
             </div>
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
               disabled={submittingCheckIn}
               data-testid="button-submit-checkin"
             >

@@ -186,72 +186,107 @@ app.get("/api/stats", requireAuth, async (req, res) => {
 
 app.post("/api/checkins", requireAuth, async (req, res) => {
     try {
-      const { mood, craving, trigger, note } = req.body;
+      const { mood, craving, note } = req.body;
 
-      if (!mood || !craving || !trigger) {
-        return res.status(400).json({ error: "Mood, craving, and trigger are required" });
+      if (mood === undefined || craving === undefined) {
+        return res.status(400).json({ error: "Mood and craving are required" });
       }
+
+      const moodVal = parseInt(mood);
+      const cravingVal = parseInt(craving);
 
       const [checkIn] = await db.insert(checkIns).values({
         userId: req.session.userId!,
-        mood: parseInt(mood),
-        craving: parseInt(craving),
-        trigger,
+        mood: moodVal,
+        craving: cravingVal,
+        trigger: null,
         note: note || null,
       }).returning();
 
-      // Get admin settings for OpenAI
+      const [sender] = await db.select().from(users).where(eq(users.id, req.session.userId!));
+
+      const moodLabels = ["Labai blogai", "Blogai", "Vidutiniškai", "Gerai", "Labai gerai", "Puikiai"];
+      const cravingLabels = ["Nenoriu", "Šiek tiek", "Vidutiniškai", "Noriu", "Labai noriu", "Neįmanoma atsispirti"];
+
+      let checkInText = `📊 Dienos savijauta:\n`;
+      checkInText += `Nuotaika: ${moodVal}/5 (${moodLabels[moodVal]})\n`;
+      checkInText += `Potraukis: ${cravingVal}/5 (${cravingLabels[cravingVal]})`;
+      if (note) checkInText += `\n💬 ${note}`;
+
+      const [chatMsg] = await db.insert(messages).values({
+        userId: req.session.userId!,
+        content: checkInText,
+        isCoach: false,
+      }).returning();
+
+      const chatMsgWithUser = { ...chatMsg, username: sender?.username || null };
+
       const [settings] = await db.select().from(adminSettings).limit(1);
-      
+
       if (settings?.openaiApiKey) {
         try {
-          // Get user info
-          const [user] = await db.select().from(users).where(eq(users.id, req.session.userId!));
-          
-          // Calculate streak
           const relapseTime = settings.relapseTime;
           const now = new Date();
           const diffMs = now.getTime() - relapseTime.getTime();
           const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
           const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
+          const lastCheckins = await db
+            .select()
+            .from(checkIns)
+            .where(eq(checkIns.userId, req.session.userId!))
+            .orderBy(desc(checkIns.createdAt))
+            .limit(5);
+
+          let historyText = "";
+          if (lastCheckins.length > 1) {
+            historyText = "\n\nPaskutiniai patikrinimai (naujausi pirmi):\n";
+            lastCheckins.forEach((c, i) => {
+              const d = new Date(c.createdAt);
+              const dateStr = `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+              historyText += `${i + 1}. ${dateStr} - Nuotaika: ${c.mood}/5, Potraukis: ${c.craving}/5${c.note ? ` (${c.note})` : ""}\n`;
+            });
+          }
+
           const openai = new OpenAI({ apiKey: settings.openaiApiKey });
 
-          const systemPrompt = settings.customInstructions || `Tu esi palaikantis treneris, padedantis žmonėms įveikti cukraus vartojimą. Atsakyk lietuviškai, 3-6 sakiniais. Būk šiltas, humoringas, ir pasiūlyk konkrečių veiksmų. Naudok skaičius apie seriją savo atsakyme.`;
+          const systemPrompt = settings.customInstructions || `Tu esi palaikantis treneris, padedantis žmonėms atsisakyti saldumynų. Atsakyk lietuviškai, 3-6 sakiniais. Būk šiltas, pasiūlyk konkrečių patarimų ir pridėk švelnų humorą. Jei yra ankstesnių patikrinimų, palygink progresą ir pastebėk tendencijas.`;
 
-          const userPrompt = `Vartotojas ${user.username} pateikė patikrinimą:
-- Nuotaika: ${mood}/5
-- Troškimas: ${craving}/5
-- Trigeris: ${trigger}
-${note ? `- Pastaba: ${note}` : ''}
+          const userPrompt = `Vartotojas ${sender.username} pateikė dienos savijautą:
+- Nuotaika: ${moodVal}/5 (${moodLabels[moodVal]})
+- Potraukis saldumynams: ${cravingVal}/5 (${cravingLabels[cravingVal]})
+${note ? `- Pastaba: ${note}` : ""}
 
-Dabartinė serija: ${days} dienos ir ${hours} valandos be cukraus.
+Dabartinė serija: ${days} dienų ir ${hours} valandų be saldumynų.${historyText}
 
-Parašyk palaikantį atsakymą lietuviškai (3-6 sakiniais), pasiūlyk konkrečių veiksmų ir būk šiek tiek humoringas.`;
+Parašyk palaikantį atsakymą lietuviškai (3-6 sakiniais). Palygink su ankstesniais patikrinimais jei jų yra. Pasiūlyk konkretų veiksmą ir pridėk švelnų humorą.`;
 
           const completion = await openai.chat.completions.create({
             model: settings.openaiModel || "gpt-4o-mini",
             messages: [
               { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt }
+              { role: "user", content: userPrompt },
             ],
           });
 
           const coachResponse = completion.choices[0]?.message?.content;
 
           if (coachResponse) {
-            await db.insert(messages).values({
+            const [coachMsg] = await db.insert(messages).values({
               userId: null,
               content: coachResponse,
               isCoach: true,
-            });
+            }).returning();
+
+            res.json({ checkIn, chatMessage: chatMsgWithUser, coachMessage: { ...coachMsg, username: null } });
+            return;
           }
         } catch (error) {
           console.error("Failed to get coach response:", error);
         }
       }
 
-      res.json(checkIn);
+      res.json({ checkIn, chatMessage: chatMsgWithUser });
     } catch (error) {
       console.error("Check-in error:", error);
       res.status(500).json({ error: "Failed to create check-in" });

@@ -41,9 +41,9 @@ export type Message = typeof messages.$inferSelect;
 export const checkIns = pgTable("check_ins", {
 id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
 userId: varchar("user_id").references(() => users.id).notNull(),
-mood: integer("mood").notNull(), // 1-5
-craving: integer("craving").notNull(), // 1-5
-trigger: text("trigger").notNull(), // vakaras/po pietų/stresas/filmai/kavinės/kita
+mood: integer("mood").notNull(), // 0-5
+craving: integer("craving").notNull(), // 0-5
+trigger: text("trigger"),
 note: text("note"),
 createdAt: timestamp("created_at").defaultNow().notNull(),
 });
