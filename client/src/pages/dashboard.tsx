@@ -168,7 +168,7 @@ export default function DashboardPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50" data-testid="dashboard-page">
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shrink-0">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-4 py-3 flex items-center justify-between shrink-0 shadow-md">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-base font-semibold truncate" data-testid="text-streak">
             Be saldumynų: {streak.days} d. ir {streak.hours} val.
@@ -181,7 +181,7 @@ export default function DashboardPage() {
           data-testid="button-menu"
           className="shrink-0"
         >
-          {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          {menuOpen ? <X className="h-6 w-6 text-white" /> : <Menu className="h-6 w-6 text-white" />}
         </Button>
       </header>
 
