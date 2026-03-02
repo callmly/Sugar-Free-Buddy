@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
   import { Label } from "@/components/ui/label";
   import { Textarea } from "@/components/ui/textarea";
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+  import { Checkbox } from "@/components/ui/checkbox";
   import { useToast } from "@/hooks/use-toast";
 
   type AdminSettings = {
@@ -14,6 +15,7 @@ import { useEffect, useState } from "react";
     openaiModel: string;
     customInstructions: string | null;
     chatInstructions: string | null;
+    allowRegistration: boolean;
     relapseTime: string;
   };
 
@@ -24,6 +26,7 @@ import { useEffect, useState } from "react";
     const [openaiModel, setOpenaiModel] = useState("gpt-4o-mini");
     const [customInstructions, setCustomInstructions] = useState("");
     const [chatInstructions, setChatInstructions] = useState("");
+    const [allowRegistration, setAllowRegistration] = useState(true);
     const [relapseTime, setRelapseTime] = useState("");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -49,6 +52,7 @@ import { useEffect, useState } from "react";
         setOpenaiModel(data.openaiModel || "gpt-4o-mini");
         setCustomInstructions(data.customInstructions || "");
         setChatInstructions(data.chatInstructions || "");
+        setAllowRegistration(data.allowRegistration !== false);
         setRelapseTime(data.relapseTime ? new Date(data.relapseTime).toISOString().slice(0, 16) : "");
       } catch (error) {
         toast({
@@ -74,6 +78,7 @@ import { useEffect, useState } from "react";
             openaiModel,
             customInstructions: customInstructions || null,
             chatInstructions: chatInstructions || null,
+            allowRegistration,
             relapseTime: relapseTime ? new Date(relapseTime).toISOString() : new Date().toISOString(),
           }),
         });
@@ -177,6 +182,18 @@ import { useEffect, useState } from "react";
                   <p className="text-sm text-muted-foreground">
                     Prompt'as naudojamas kai vartotojas kreipiasi "Treneri, ..." pokalbyje
                   </p>
+                </div>
+
+                <div className="flex items-center space-x-3 py-2">
+                  <Checkbox
+                    id="allowRegistration"
+                    checked={allowRegistration}
+                    onCheckedChange={(checked) => setAllowRegistration(checked as boolean)}
+                    data-testid="checkbox-allow-registration"
+                  />
+                  <Label htmlFor="allowRegistration" className="cursor-pointer">
+                    Leisti registruotis naujiems vartotojams
+                  </Label>
                 </div>
 
                 <div className="space-y-2">

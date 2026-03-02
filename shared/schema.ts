@@ -66,6 +66,7 @@ openaiApiKey: text("openai_api_key"),
 openaiModel: text("openai_model").default("gpt-4o-mini"),
 customInstructions: text("custom_instructions"),
 chatInstructions: text("chat_instructions"),
+allowRegistration: boolean("allow_registration").default(true).notNull(),
 relapseTime: timestamp("relapse_time").notNull(),
 updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

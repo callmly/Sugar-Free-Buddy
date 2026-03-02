@@ -21,8 +21,44 @@ function broadcastMessage(wss: WebSocketServer, message: any) {
   });
 }
 
+const loginAttempts = new Map<string, { count: number; lastAttempt: number; lockUntil: number }>();
+
+function getLoginLockout(ip: string): { locked: boolean; retryAfter: number } {
+  const record = loginAttempts.get(ip);
+  if (!record) return { locked: false, retryAfter: 0 };
+  if (record.lockUntil > Date.now()) {
+    return { locked: true, retryAfter: Math.ceil((record.lockUntil - Date.now()) / 1000) };
+  }
+  return { locked: false, retryAfter: 0 };
+}
+
+function recordFailedLogin(ip: string) {
+  const now = Date.now();
+  const record = loginAttempts.get(ip) || { count: 0, lastAttempt: 0, lockUntil: 0 };
+
+  if (now - record.lastAttempt > 60 * 60 * 1000) {
+    record.count = 0;
+  }
+
+  record.count++;
+  record.lastAttempt = now;
+
+  if (record.count >= 12) {
+    record.lockUntil = now + 24 * 60 * 60 * 1000;
+  } else if (record.count >= 8) {
+    record.lockUntil = now + 60 * 60 * 1000;
+  } else if (record.count >= 4) {
+    record.lockUntil = now + 15 * 60 * 1000;
+  }
+
+  loginAttempts.set(ip, record);
+}
+
+function clearLoginAttempts(ip: string) {
+  loginAttempts.delete(ip);
+}
+
 export function registerRoutes(app: Express, wss?: WebSocketServer) {
-// Auth middleware
 const requireAuth = (req: Request, res: Response, next: Function) => {
     if (!req.session.userId) {
       return res.status(401).json({ error: "Not authenticated" });
@@ -30,17 +66,41 @@ const requireAuth = (req: Request, res: Response, next: Function) => {
     next();
 };
 
-// Auth routes
+app.get("/api/auth/registration-allowed", async (_req, res) => {
+    try {
+      const [settings] = await db.select().from(adminSettings).limit(1);
+      const allUsers = await db.select({ id: users.id }).from(users);
+      const allowed = (!settings || settings.allowRegistration) && allUsers.length < 2;
+      res.json({ allowed });
+    } catch {
+      res.json({ allowed: false });
+    }
+});
+
 app.post("/api/auth/register", async (req, res) => {
     try {
       const { username, password } = req.body;
-      
+
       if (!username || !password) {
-        return res.status(400).json({ error: "Username and password required" });
+        return res.status(400).json({ error: "Įveskite vartotojo vardą ir PIN kodą" });
+      }
+
+      if (!/^\d{4,6}$/.test(password)) {
+        return res.status(400).json({ error: "PIN kodas turi būti 4-6 skaitmenų" });
+      }
+
+      const allUsers = await db.select({ id: users.id }).from(users);
+      if (allUsers.length >= 2) {
+        return res.status(403).json({ error: "Pasiektas maksimalus vartotojų skaičius (2)" });
+      }
+
+      const [settings] = await db.select().from(adminSettings).limit(1);
+      if (settings && !settings.allowRegistration) {
+        return res.status(403).json({ error: "Registracija šiuo metu išjungta" });
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      
+
       const [user] = await db.insert(users).values({
         username,
         password: hashedPassword,
@@ -50,9 +110,9 @@ app.post("/api/auth/register", async (req, res) => {
       res.json({ user: { id: user.id, username: user.username } });
     } catch (error: any) {
       if (error.code === "23505") {
-        res.status(400).json({ error: "Username already exists" });
+        res.status(400).json({ error: "Toks vartotojo vardas jau užimtas" });
       } else {
-        res.status(500).json({ error: "Failed to register" });
+        res.status(500).json({ error: "Nepavyko užregistruoti" });
       }
     }
 });
@@ -60,27 +120,37 @@ app.post("/api/auth/register", async (req, res) => {
 app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password, rememberMe } = req.body;
+      const ip = req.ip || req.socket.remoteAddress || "unknown";
+
+      const lockout = getLoginLockout(ip);
+      if (lockout.locked) {
+        const mins = Math.ceil(lockout.retryAfter / 60);
+        return res.status(429).json({ error: `Per daug bandymų. Bandykite po ${mins} min.`, retryAfter: lockout.retryAfter });
+      }
 
       const [user] = await db.select().from(users).where(eq(users.username, username));
 
       if (!user) {
-        return res.status(401).json({ error: "Invalid credentials" });
+        recordFailedLogin(ip);
+        return res.status(401).json({ error: "Neteisingi prisijungimo duomenys" });
       }
 
       const valid = await bcrypt.compare(password, user.password);
       if (!valid) {
-        return res.status(401).json({ error: "Invalid credentials" });
+        recordFailedLogin(ip);
+        return res.status(401).json({ error: "Neteisingi prisijungimo duomenys" });
       }
 
+      clearLoginAttempts(ip);
       req.session.userId = user.id;
-      
+
       if (rememberMe) {
-        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
       }
 
       res.json({ user: { id: user.id, username: user.username } });
     } catch (error) {
-      res.status(500).json({ error: "Failed to login" });
+      res.status(500).json({ error: "Nepavyko prisijungti" });
     }
 });
 
@@ -421,7 +491,7 @@ app.get("/api/admin/settings", requireAuth, async (req, res) => {
 
 app.put("/api/admin/settings", requireAuth, async (req, res) => {
     try {
-      const { openaiApiKey, openaiModel, customInstructions, chatInstructions, relapseTime } = req.body;
+      const { openaiApiKey, openaiModel, customInstructions, chatInstructions, allowRegistration, relapseTime } = req.body;
 
       const [settings] = await db.select().from(adminSettings).limit(1);
 
@@ -433,6 +503,7 @@ app.put("/api/admin/settings", requireAuth, async (req, res) => {
       if (openaiModel !== undefined) updateData.openaiModel = openaiModel;
       if (customInstructions !== undefined) updateData.customInstructions = customInstructions;
       if (chatInstructions !== undefined) updateData.chatInstructions = chatInstructions;
+      if (allowRegistration !== undefined) updateData.allowRegistration = allowRegistration;
       if (relapseTime !== undefined) updateData.relapseTime = new Date(relapseTime);
 
       if (settings) {
