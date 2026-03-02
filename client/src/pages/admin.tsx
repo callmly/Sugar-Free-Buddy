@@ -138,7 +138,7 @@ import { useEffect, useState } from "react";
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="!bg-white dark:!bg-gray-900 border border-gray-200 shadow-lg z-[100]">
                       <SelectItem value="gpt-4o">GPT-4o</SelectItem>
                       <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
                       <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
