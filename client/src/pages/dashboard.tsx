@@ -314,31 +314,45 @@ import { useEffect, useState, useRef } from "react";
               <CardContent>
                 <ScrollArea className="h-[400px] pr-4">
                   <div className="space-y-3">
-                    {messages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.isCoach ? "justify-start" : "justify-end"}`}
-                      >
+                    {messages.map((msg) => {
+                      const isOwn = msg.userId === user?.id;
+                      const isCoach = msg.isCoach;
+                      const d = new Date(msg.createdAt);
+                      const mm = String(d.getMonth() + 1).padStart(2, "0");
+                      const dd = String(d.getDate()).padStart(2, "0");
+                      const hh = String(d.getHours()).padStart(2, "0");
+                      const min = String(d.getMinutes()).padStart(2, "0");
+                      const timestamp = `${mm}.${dd} / ${hh}:${min}`;
+
+                      return (
                         <div
-                          className={`max-w-[80%] rounded-lg p-3 ${
-                            msg.isCoach
-                              ? "bg-blue-100 text-blue-900"
-                              : "bg-purple-500 text-white"
-                          }`}
+                          key={msg.id}
+                          data-testid={`message-${msg.id}`}
+                          className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                         >
-                          {msg.isCoach && (
-                            <div className="text-xs font-semibold mb-1">🤖 Treneris</div>
-                          )}
-                          <div className="whitespace-pre-wrap">{msg.content}</div>
-                          <div className="text-xs opacity-70 mt-1">
-                            {new Date(msg.createdAt).toLocaleTimeString("lt-LT", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                          <div
+                            className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
+                              isCoach
+                                ? "bg-amber-50 border border-amber-200 text-amber-900"
+                                : isOwn
+                                  ? "bg-blue-500 text-white"
+                                  : "bg-gray-200 text-gray-900"
+                            }`}
+                          >
+                            {isCoach && (
+                              <div className="text-xs font-semibold mb-1">🤖 Treneris</div>
+                            )}
+                            {!isOwn && !isCoach && (
+                              <div className="text-xs font-semibold mb-1 text-gray-600">👤 Partneris</div>
+                            )}
+                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                            <div className={`text-[11px] mt-1 ${isOwn && !isCoach ? "text-blue-100" : "text-gray-500"}`}>
+                              {timestamp}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     <div ref={messagesEndRef} />
                   </div>
                 </ScrollArea>
