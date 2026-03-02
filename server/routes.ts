@@ -96,7 +96,19 @@ app.get("/api/auth/me", requireAuth, async (req, res) => {
 // Messages routes
 app.get("/api/messages", requireAuth, async (req, res) => {
     try {
-      const allMessages = await db.select().from(messages).orderBy(desc(messages.createdAt)).limit(100);
+      const allMessages = await db
+        .select({
+          id: messages.id,
+          userId: messages.userId,
+          content: messages.content,
+          isCoach: messages.isCoach,
+          createdAt: messages.createdAt,
+          username: users.username,
+        })
+        .from(messages)
+        .leftJoin(users, eq(messages.userId, users.id))
+        .orderBy(desc(messages.createdAt))
+        .limit(100);
       res.json(allMessages.reverse());
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch messages" });
@@ -113,7 +125,8 @@ app.post("/api/messages", requireAuth, async (req, res) => {
         isCoach: false,
       }).returning();
 
-      res.json(message);
+      const [sender] = await db.select().from(users).where(eq(users.id, req.session.userId!));
+      res.json({ ...message, username: sender?.username || null });
     } catch (error) {
       res.status(500).json({ error: "Failed to send message" });
     }

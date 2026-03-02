@@ -18,6 +18,7 @@ import { useEffect, useState, useRef } from "react";
     content: string;
     isCoach: boolean;
     createdAt: string;
+    username: string | null;
   };
 
   type User = {
@@ -343,7 +344,7 @@ import { useEffect, useState, useRef } from "react";
                               <div className="text-xs font-semibold mb-1">🤖 Treneris</div>
                             )}
                             {!isOwn && !isCoach && (
-                              <div className="text-xs font-semibold mb-1 text-gray-600">👤 Partneris</div>
+                              <div className="text-xs font-semibold mb-1 text-gray-600">👤 {msg.username || "Partneris"}</div>
                             )}
                             <div className="whitespace-pre-wrap">{msg.content}</div>
                             <div className={`text-[11px] mt-1 ${isOwn && !isCoach ? "text-blue-100" : "text-gray-500"}`}>
