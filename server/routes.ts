@@ -126,7 +126,75 @@ app.post("/api/messages", requireAuth, async (req, res) => {
       }).returning();
 
       const [sender] = await db.select().from(users).where(eq(users.id, req.session.userId!));
-      res.json({ ...message, username: sender?.username || null });
+      const messageWithUser = { ...message, username: sender?.username || null };
+
+      const coachMatch = content.match(/^[Tt]reneri[,:]?\s*(.*)/s);
+      if (coachMatch && coachMatch[1]?.trim()) {
+        const userQuestion = coachMatch[1].trim();
+        const [settings] = await db.select().from(adminSettings).limit(1);
+
+        if (settings?.openaiApiKey) {
+          try {
+            const relapseTime = settings.relapseTime;
+            const now = new Date();
+            const diffMs = now.getTime() - relapseTime.getTime();
+            const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+            const recentMessages = await db
+              .select({ content: messages.content, isCoach: messages.isCoach, username: users.username })
+              .from(messages)
+              .leftJoin(users, eq(messages.userId, users.id))
+              .orderBy(desc(messages.createdAt))
+              .limit(10);
+
+            let chatContext = "";
+            if (recentMessages.length > 0) {
+              chatContext = "\n\nPaskutinės pokalbių žinutės:\n";
+              recentMessages.reverse().forEach((m) => {
+                const who = m.isCoach ? "Treneris" : (m.username || "Vartotojas");
+                chatContext += `${who}: ${m.content}\n`;
+              });
+            }
+
+            const openai = new OpenAI({ apiKey: settings.openaiApiKey });
+
+            const systemPrompt = settings.chatInstructions || `Tu esi palaikantis treneris, padedantis žmonėms atsisakyti saldumynų. Atsakyk lietuviškai, 3-6 sakiniais. Būk šiltas, draugiškas ir pasiūlyk konkrečių patarimų. Pridėk švelnų humorą.`;
+
+            const userPrompt = `Vartotojas ${sender.username} kreipiasi į tave:
+"${userQuestion}"
+
+Dabartinė serija: ${days} dienų ir ${hours} valandų be saldumynų.${chatContext}
+
+Atsakyk lietuviškai, trumpai ir konkrečiai.`;
+
+            const completion = await openai.chat.completions.create({
+              model: settings.openaiModel || "gpt-4o-mini",
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt },
+              ],
+            });
+
+            const coachResponse = completion.choices[0]?.message?.content;
+
+            if (coachResponse) {
+              const [coachMsg] = await db.insert(messages).values({
+                userId: null,
+                content: coachResponse,
+                isCoach: true,
+              }).returning();
+
+              res.json({ ...messageWithUser, coachMessage: { ...coachMsg, username: null } });
+              return;
+            }
+          } catch (error) {
+            console.error("Failed to get coach response:", error);
+          }
+        }
+      }
+
+      res.json(messageWithUser);
     } catch (error) {
       res.status(500).json({ error: "Failed to send message" });
     }
@@ -336,7 +404,7 @@ app.get("/api/admin/settings", requireAuth, async (req, res) => {
 
 app.put("/api/admin/settings", requireAuth, async (req, res) => {
     try {
-      const { openaiApiKey, openaiModel, customInstructions, relapseTime } = req.body;
+      const { openaiApiKey, openaiModel, customInstructions, chatInstructions, relapseTime } = req.body;
 
       const [settings] = await db.select().from(adminSettings).limit(1);
 
@@ -347,6 +415,7 @@ app.put("/api/admin/settings", requireAuth, async (req, res) => {
       if (openaiApiKey !== undefined) updateData.openaiApiKey = openaiApiKey;
       if (openaiModel !== undefined) updateData.openaiModel = openaiModel;
       if (customInstructions !== undefined) updateData.customInstructions = customInstructions;
+      if (chatInstructions !== undefined) updateData.chatInstructions = chatInstructions;
       if (relapseTime !== undefined) updateData.relapseTime = new Date(relapseTime);
 
       if (settings) {

@@ -65,7 +65,8 @@ id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
 openaiApiKey: text("openai_api_key"),
 openaiModel: text("openai_model").default("gpt-4o-mini"),
 customInstructions: text("custom_instructions"),
-relapseTime: timestamp("relapse_time").notNull(), // The time to calculate streak from
+chatInstructions: text("chat_instructions"),
+relapseTime: timestamp("relapse_time").notNull(),
 updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
@@ -73,6 +74,7 @@ export const insertAdminSettingsSchema = createInsertSchema(adminSettings).pick(
 openaiApiKey: true,
 openaiModel: true,
 customInstructions: true,
+chatInstructions: true,
 relapseTime: true,
 });
 

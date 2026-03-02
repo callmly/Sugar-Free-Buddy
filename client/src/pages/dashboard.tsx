@@ -112,10 +112,14 @@ export default function DashboardPage() {
         body: JSON.stringify({ content: newMessage }),
       });
       if (!res.ok) throw new Error("Failed to send message");
-      const message = await res.json();
+      const data = await res.json();
       setNewMessage("");
+      const { coachMessage, ...userMsg } = data;
       if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: "new_message", message }));
+        wsRef.current.send(JSON.stringify({ type: "new_message", message: userMsg }));
+        if (coachMessage) {
+          wsRef.current.send(JSON.stringify({ type: "new_message", message: coachMessage }));
+        }
       }
     } catch {
       toast({ title: "Klaida", description: "Nepavyko išsiųsti žinutės", variant: "destructive" });

@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
     openaiApiKey: string | null;
     openaiModel: string;
     customInstructions: string | null;
+    chatInstructions: string | null;
     relapseTime: string;
   };
 
@@ -22,6 +23,7 @@ import { useEffect, useState } from "react";
     const [openaiApiKey, setOpenaiApiKey] = useState("");
     const [openaiModel, setOpenaiModel] = useState("gpt-4o-mini");
     const [customInstructions, setCustomInstructions] = useState("");
+    const [chatInstructions, setChatInstructions] = useState("");
     const [relapseTime, setRelapseTime] = useState("");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -46,6 +48,7 @@ import { useEffect, useState } from "react";
         setOpenaiApiKey(data.openaiApiKey || "");
         setOpenaiModel(data.openaiModel || "gpt-4o-mini");
         setCustomInstructions(data.customInstructions || "");
+        setChatInstructions(data.chatInstructions || "");
         setRelapseTime(data.relapseTime ? new Date(data.relapseTime).toISOString().slice(0, 16) : "");
       } catch (error) {
         toast({
@@ -70,6 +73,7 @@ import { useEffect, useState } from "react";
             openaiApiKey: openaiApiKey || null,
             openaiModel,
             customInstructions: customInstructions || null,
+            chatInstructions: chatInstructions || null,
             relapseTime: relapseTime ? new Date(relapseTime).toISOString() : new Date().toISOString(),
           }),
         });
@@ -148,16 +152,30 @@ import { useEffect, useState } from "react";
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="instructions">Pasirinktinės Instrukcijos</Label>
+                  <Label htmlFor="instructions">Savijautos instrukcijos</Label>
                   <Textarea
                     id="instructions"
                     value={customInstructions}
                     onChange={(e) => setCustomInstructions(e.target.value)}
                     placeholder="Tu esi palaikantis treneris..."
-                    rows={6}
+                    rows={4}
                   />
                   <p className="text-sm text-muted-foreground">
-                    Palikite tuščią, kad naudotumėte numatytąsias instrukcijas
+                    Prompt'as naudojamas kai vartotojas pateikia dienos savijautą
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="chatInstructions">Pokalbių instrukcijos ("Treneri, ...")</Label>
+                  <Textarea
+                    id="chatInstructions"
+                    value={chatInstructions}
+                    onChange={(e) => setChatInstructions(e.target.value)}
+                    placeholder="Tu esi palaikantis treneris, atsakantis į klausimus..."
+                    rows={4}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Prompt'as naudojamas kai vartotojas kreipiasi "Treneri, ..." pokalbyje
                   </p>
                 </div>
 
