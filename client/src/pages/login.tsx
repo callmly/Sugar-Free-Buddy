@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
@@ -12,7 +11,6 @@ export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [registrationAllowed, setRegistrationAllowed] = useState(true);
   const { toast } = useToast();
@@ -43,7 +41,7 @@ export default function LoginPage() {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, rememberMe }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
@@ -76,16 +74,17 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             <div className="space-y-2">
               <Label htmlFor="username">Vartotojo vardas</Label>
               <Input
                 id="username"
+                name="username_nocomplete"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                autoComplete="username"
+                autoComplete="off"
                 data-testid="input-username"
               />
             </div>
@@ -93,6 +92,7 @@ export default function LoginPage() {
               <Label htmlFor="password">PIN kodas</Label>
               <Input
                 id="password"
+                name="pin_nocomplete"
                 type="password"
                 inputMode="numeric"
                 pattern="\d{4,6}"
@@ -103,24 +103,11 @@ export default function LoginPage() {
                   setPassword(val);
                 }}
                 required
-                autoComplete="current-password"
+                autoComplete="new-password"
                 placeholder={!isLogin && registrationAllowed ? "4-6 skaitmenų" : ""}
                 data-testid="input-password"
               />
             </div>
-            {isLogin && (
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remember"
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                  data-testid="checkbox-remember"
-                />
-                <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
-                  Prisiminti mane
-                </Label>
-              </div>
-            )}
             <Button type="submit" className="w-full" disabled={loading} data-testid="button-submit">
               {loading ? "Kraunasi..." : isLogin ? "Prisijungti" : "Registruotis"}
             </Button>

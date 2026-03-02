@@ -119,7 +119,7 @@ app.post("/api/auth/register", async (req, res) => {
 
 app.post("/api/auth/login", async (req, res) => {
     try {
-      const { username, password, rememberMe } = req.body;
+      const { username, password } = req.body;
       const ip = req.ip || req.socket.remoteAddress || "unknown";
 
       const lockout = getLoginLockout(ip);
@@ -143,10 +143,6 @@ app.post("/api/auth/login", async (req, res) => {
 
       clearLoginAttempts(ip);
       req.session.userId = user.id;
-
-      if (rememberMe) {
-        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
-      }
 
       res.json({ user: { id: user.id, username: user.username } });
     } catch (error) {
