@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.local
+.replit
+replit.nix
+.config
+*.md
+attached_assets

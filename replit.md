@@ -82,4 +82,18 @@ Preferred communication style: Simple, everyday language.
 ### Environment Variables Required
 - `DATABASE_URL` — PostgreSQL connection string (mandatory)
 - `SESSION_SECRET` — Session signing secret (falls back to a hardcoded default if not set; set this in production)
+- `PORT` — Server port (defaults to 5000)
 - OpenAI API key is **stored in the database** via the admin panel, not as an environment variable
+
+### Deployment (Coolify / Docker)
+- `Dockerfile` — multi-stage build: installs deps, builds frontend+backend, runs `node dist/index.cjs`
+- `docker-compose.yml` — app + PostgreSQL 16; set `SESSION_SECRET` env var
+- Production mode: `NODE_ENV=production` serves static files from `dist/public/`, no Vite
+- Dev mode: `NODE_ENV=development` uses Vite middleware for HMR
+- Fresh DB auto-creates tables and default admin_settings with registration enabled
+- First registered user should be "Tomas" — only "Tomas" can access /admin
+- After both users registered, disable registration from admin panel
+
+### Admin Access
+- Only user with username "Tomas" can access /admin routes
+- Admin panel URL: /admin (no link in UI, navigate directly)
