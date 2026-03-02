@@ -4,15 +4,24 @@ import { users, messages, checkIns, adminSettings } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import OpenAI from "openai";
+import { WebSocketServer } from "ws";
 
-// Extend session type
 declare module "express-session" {
 interface SessionData {
     userId: string;
 }
 }
 
-export function registerRoutes(app: Express) {
+function broadcastMessage(wss: WebSocketServer, message: any) {
+  const payload = JSON.stringify({ type: "new_message", message });
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) {
+      client.send(payload);
+    }
+  });
+}
+
+export function registerRoutes(app: Express, wss?: WebSocketServer) {
 // Auth middleware
 const requireAuth = (req: Request, res: Response, next: Function) => {
     if (!req.session.userId) {
@@ -128,13 +137,18 @@ app.post("/api/messages", requireAuth, async (req, res) => {
       const [sender] = await db.select().from(users).where(eq(users.id, req.session.userId!));
       const messageWithUser = { ...message, username: sender?.username || null };
 
-      const coachMatch = content.match(/^[Tt]reneri[,:]?\s*(.*)/s);
-      if (coachMatch && coachMatch[1]?.trim()) {
-        const userQuestion = coachMatch[1].trim();
-        const [settings] = await db.select().from(adminSettings).limit(1);
+      res.json(messageWithUser);
 
-        if (settings?.openaiApiKey) {
+      const coachMatch = content.match(/^[Tt]reneri[,:]?\s*(.*)/s);
+      if (coachMatch && coachMatch[1]?.trim() && wss) {
+        const userQuestion = coachMatch[1].trim();
+        const senderName = sender?.username || "Vartotojas";
+
+        (async () => {
           try {
+            const [settings] = await db.select().from(adminSettings).limit(1);
+            if (!settings?.openaiApiKey) return;
+
             const relapseTime = settings.relapseTime;
             const now = new Date();
             const diffMs = now.getTime() - relapseTime.getTime();
@@ -161,7 +175,7 @@ app.post("/api/messages", requireAuth, async (req, res) => {
 
             const systemPrompt = settings.chatInstructions || `Tu esi palaikantis treneris, padedantis žmonėms atsisakyti saldumynų. Atsakyk lietuviškai, 3-6 sakiniais. Būk šiltas, draugiškas ir pasiūlyk konkrečių patarimų. Pridėk švelnų humorą.`;
 
-            const userPrompt = `Vartotojas ${sender.username} kreipiasi į tave:
+            const userPrompt = `Vartotojas ${senderName} kreipiasi į tave:
 "${userQuestion}"
 
 Dabartinė serija: ${days} dienų ir ${hours} valandų be saldumynų.${chatContext}
@@ -185,16 +199,13 @@ Atsakyk lietuviškai, trumpai ir konkrečiai.`;
                 isCoach: true,
               }).returning();
 
-              res.json({ ...messageWithUser, coachMessage: { ...coachMsg, username: null } });
-              return;
+              broadcastMessage(wss, { ...coachMsg, username: null });
             }
           } catch (error) {
             console.error("Failed to get coach response:", error);
           }
-        }
+        })();
       }
-
-      res.json(messageWithUser);
     } catch (error) {
       res.status(500).json({ error: "Failed to send message" });
     }
@@ -289,38 +300,45 @@ app.post("/api/checkins", requireAuth, async (req, res) => {
 
       const chatMsgWithUser = { ...chatMsg, username: sender?.username || null };
 
-      const [settings] = await db.select().from(adminSettings).limit(1);
+      res.json({ checkIn, chatMessage: chatMsgWithUser });
 
-      if (settings?.openaiApiKey) {
-        try {
-          const relapseTime = settings.relapseTime;
-          const now = new Date();
-          const diffMs = now.getTime() - relapseTime.getTime();
-          const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      if (wss) {
+        const userId = req.session.userId!;
+        const senderName = sender?.username || "Vartotojas";
 
-          const lastCheckins = await db
-            .select()
-            .from(checkIns)
-            .where(eq(checkIns.userId, req.session.userId!))
-            .orderBy(desc(checkIns.createdAt))
-            .limit(5);
+        (async () => {
+          try {
+            const [settings] = await db.select().from(adminSettings).limit(1);
+            if (!settings?.openaiApiKey) return;
 
-          let historyText = "";
-          if (lastCheckins.length > 1) {
-            historyText = "\n\nPaskutiniai patikrinimai (naujausi pirmi):\n";
-            lastCheckins.forEach((c, i) => {
-              const d = new Date(c.createdAt);
-              const dateStr = `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-              historyText += `${i + 1}. ${dateStr} - Nuotaika: ${c.mood}/5, Potraukis: ${c.craving}/5${c.note ? ` (${c.note})` : ""}\n`;
-            });
-          }
+            const relapseTime = settings.relapseTime;
+            const now = new Date();
+            const diffMs = now.getTime() - relapseTime.getTime();
+            const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
-          const openai = new OpenAI({ apiKey: settings.openaiApiKey });
+            const lastCheckins = await db
+              .select()
+              .from(checkIns)
+              .where(eq(checkIns.userId, userId))
+              .orderBy(desc(checkIns.createdAt))
+              .limit(5);
 
-          const systemPrompt = settings.customInstructions || `Tu esi palaikantis treneris, padedantis žmonėms atsisakyti saldumynų. Atsakyk lietuviškai, 3-6 sakiniais. Būk šiltas, pasiūlyk konkrečių patarimų ir pridėk švelnų humorą. Jei yra ankstesnių patikrinimų, palygink progresą ir pastebėk tendencijas.`;
+            let historyText = "";
+            if (lastCheckins.length > 1) {
+              historyText = "\n\nPaskutiniai patikrinimai (naujausi pirmi):\n";
+              lastCheckins.forEach((c, i) => {
+                const d = new Date(c.createdAt);
+                const dateStr = `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+                historyText += `${i + 1}. ${dateStr} - Nuotaika: ${c.mood}/5, Potraukis: ${c.craving}/5${c.note ? ` (${c.note})` : ""}\n`;
+              });
+            }
 
-          const userPrompt = `Vartotojas ${sender.username} pateikė dienos savijautą:
+            const openai = new OpenAI({ apiKey: settings.openaiApiKey });
+
+            const systemPrompt = settings.customInstructions || `Tu esi palaikantis treneris, padedantis žmonėms atsisakyti saldumynų. Atsakyk lietuviškai, 3-6 sakiniais. Būk šiltas, pasiūlyk konkrečių patarimų ir pridėk švelnų humorą. Jei yra ankstesnių patikrinimų, palygink progresą ir pastebėk tendencijas.`;
+
+            const userPrompt = `Vartotojas ${senderName} pateikė dienos savijautą:
 - Nuotaika: ${moodVal}/5 (${moodLabels[moodVal]})
 - Potraukis saldumynams: ${cravingVal}/5 (${cravingLabels[cravingVal]})
 ${note ? `- Pastaba: ${note}` : ""}
@@ -329,32 +347,30 @@ Dabartinė serija: ${days} dienų ir ${hours} valandų be saldumynų.${historyTe
 
 Parašyk palaikantį atsakymą lietuviškai (3-6 sakiniais). Palygink su ankstesniais patikrinimais jei jų yra. Pasiūlyk konkretų veiksmą ir pridėk švelnų humorą.`;
 
-          const completion = await openai.chat.completions.create({
-            model: settings.openaiModel || "gpt-4o-mini",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt },
-            ],
-          });
+            const completion = await openai.chat.completions.create({
+              model: settings.openaiModel || "gpt-4o-mini",
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt },
+              ],
+            });
 
-          const coachResponse = completion.choices[0]?.message?.content;
+            const coachResponse = completion.choices[0]?.message?.content;
 
-          if (coachResponse) {
-            const [coachMsg] = await db.insert(messages).values({
-              userId: null,
-              content: coachResponse,
-              isCoach: true,
-            }).returning();
+            if (coachResponse) {
+              const [coachMsg] = await db.insert(messages).values({
+                userId: null,
+                content: coachResponse,
+                isCoach: true,
+              }).returning();
 
-            res.json({ checkIn, chatMessage: chatMsgWithUser, coachMessage: { ...coachMsg, username: null } });
-            return;
+              broadcastMessage(wss, { ...coachMsg, username: null });
+            }
+          } catch (error) {
+            console.error("Failed to get coach response:", error);
           }
-        } catch (error) {
-          console.error("Failed to get coach response:", error);
-        }
+        })();
       }
-
-      res.json({ checkIn, chatMessage: chatMsgWithUser });
     } catch (error) {
       console.error("Check-in error:", error);
       res.status(500).json({ error: "Failed to create check-in" });

@@ -85,7 +85,7 @@ app.use((req, res, next) => {
       const vite = await setupVite(server, app);
       
       // Register API routes
-      registerRoutes(app);
+      registerRoutes(app, wss);
       
       // Serve static files and handle SPA routing (must be last)
       serveStatic(app, vite);

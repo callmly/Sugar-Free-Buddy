@@ -112,14 +112,10 @@ export default function DashboardPage() {
         body: JSON.stringify({ content: newMessage }),
       });
       if (!res.ok) throw new Error("Failed to send message");
-      const data = await res.json();
+      const message = await res.json();
       setNewMessage("");
-      const { coachMessage, ...userMsg } = data;
       if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: "new_message", message: userMsg }));
-        if (coachMessage) {
-          wsRef.current.send(JSON.stringify({ type: "new_message", message: coachMessage }));
-        }
+        wsRef.current.send(JSON.stringify({ type: "new_message", message }));
       }
     } catch {
       toast({ title: "Klaida", description: "Nepavyko išsiųsti žinutės", variant: "destructive" });
@@ -144,9 +140,6 @@ export default function DashboardPage() {
 
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify({ type: "new_message", message: data.chatMessage }));
-        if (data.coachMessage) {
-          wsRef.current.send(JSON.stringify({ type: "new_message", message: data.coachMessage }));
-        }
       }
     } catch {
       toast({ title: "Klaida", description: "Nepavyko išsaugoti", variant: "destructive" });
