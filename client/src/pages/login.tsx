@@ -104,7 +104,7 @@ export default function LoginPage() {
                 }}
                 required
                 autoComplete="current-password"
-                placeholder="4-6 skaitmenų"
+                placeholder={!isLogin && registrationAllowed ? "4-6 skaitmenų" : ""}
                 data-testid="input-password"
               />
             </div>
