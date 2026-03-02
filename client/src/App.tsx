@@ -5,6 +5,7 @@ import { Switch, Route } from "wouter";
   import LoginPage from "./pages/login";
   import DashboardPage from "./pages/dashboard";
   import AdminPage from "./pages/admin";
+  import StatisticsPage from "./pages/statistics";
   import NotFound from "./pages/not-found";
 
   function App() {
@@ -13,6 +14,7 @@ import { Switch, Route } from "wouter";
         <Switch>
           <Route path="/login" component={LoginPage} />
           <Route path="/admin" component={AdminPage} />
+          <Route path="/statistics" component={StatisticsPage} />
           <Route path="/" component={DashboardPage} />
           <Route component={NotFound} />
         </Switch>

@@ -142,6 +142,48 @@ app.get("/api/checkins", requireAuth, async (req, res) => {
     }
 });
 
+app.get("/api/stats", requireAuth, async (req, res) => {
+    try {
+      const allUsers = await db.select({ id: users.id, username: users.username }).from(users);
+      const allCheckIns = await db
+        .select({
+          id: checkIns.id,
+          userId: checkIns.userId,
+          mood: checkIns.mood,
+          craving: checkIns.craving,
+          trigger: checkIns.trigger,
+          note: checkIns.note,
+          createdAt: checkIns.createdAt,
+          username: users.username,
+        })
+        .from(checkIns)
+        .leftJoin(users, eq(checkIns.userId, users.id))
+        .orderBy(desc(checkIns.createdAt));
+
+      const stats = allUsers.map((u) => {
+        const userCheckins = allCheckIns.filter((c) => c.userId === u.id);
+        const avgMood = userCheckins.length
+          ? (userCheckins.reduce((s, c) => s + c.mood, 0) / userCheckins.length).toFixed(1)
+          : null;
+        const avgCraving = userCheckins.length
+          ? (userCheckins.reduce((s, c) => s + c.craving, 0) / userCheckins.length).toFixed(1)
+          : null;
+        return {
+          userId: u.id,
+          username: u.username,
+          totalCheckins: userCheckins.length,
+          avgMood,
+          avgCraving,
+          checkins: userCheckins.slice(0, 14),
+        };
+      });
+
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+});
+
 app.post("/api/checkins", requireAuth, async (req, res) => {
     try {
       const { mood, craving, trigger, note } = req.body;
