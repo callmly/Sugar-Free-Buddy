@@ -74,26 +74,30 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off" data-lpignore="true" data-1p-ignore>
+            <input type="text" style={{ display: "none" }} tabIndex={-1} aria-hidden="true" />
+            <input type="password" style={{ display: "none" }} tabIndex={-1} aria-hidden="true" />
             <div className="space-y-2">
-              <Label htmlFor="username">Vartotojo vardas</Label>
+              <Label htmlFor="nc_user_field">Vartotojo vardas</Label>
               <Input
-                id="username"
-                name="username_nocomplete"
+                id="nc_user_field"
+                name="nc_user_field"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 autoComplete="off"
+                data-lpignore="true"
+                data-1p-ignore
                 data-testid="input-username"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">PIN kodas</Label>
+              <Label htmlFor="nc_pin_field">PIN kodas</Label>
               <Input
-                id="password"
-                name="pin_nocomplete"
-                type="password"
+                id="nc_pin_field"
+                name="nc_pin_field"
+                type="tel"
                 inputMode="numeric"
                 pattern="\d{4,6}"
                 maxLength={6}
@@ -103,7 +107,9 @@ export default function LoginPage() {
                   setPassword(val);
                 }}
                 required
-                autoComplete="new-password"
+                autoComplete="off"
+                data-lpignore="true"
+                data-1p-ignore
                 placeholder={!isLogin && registrationAllowed ? "4-6 skaitmenų" : ""}
                 data-testid="input-password"
               />
