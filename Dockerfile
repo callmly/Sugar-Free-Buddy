@@ -6,7 +6,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN npx tsx script/build.ts
+RUN ./node_modules/.bin/tsx script/build.ts
 
 FROM node:20-alpine
 

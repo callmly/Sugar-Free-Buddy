@@ -1,0 +1,249 @@
+2026-Mar-03 06:27:00.066937
+Deployment failed: Command execution failed (exit code 1): docker exec rsc8cwc4oos8o8k840o80oog bash -c 'bash /artifacts/build.sh'
+2026-Mar-03 06:27:00.066937
+Error: #0 building with "default" instance using docker driver
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#1 [internal] load build definition from Dockerfile
+2026-Mar-03 06:27:00.066937
+#1 transferring dockerfile: 1.19kB done
+2026-Mar-03 06:27:00.066937
+#1 DONE 0.0s
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+2026-Mar-03 06:27:00.066937
+#2 DONE 0.4s
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#3 [internal] load .dockerignore
+2026-Mar-03 06:27:00.066937
+#3 transferring context: 118B done
+2026-Mar-03 06:27:00.066937
+#3 DONE 0.0s
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#4 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8
+2026-Mar-03 06:27:00.066937
+#4 DONE 0.0s
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#5 [builder 2/6] WORKDIR /app
+2026-Mar-03 06:27:00.066937
+#5 CACHED
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#6 [internal] load build context
+2026-Mar-03 06:27:00.066937
+#6 transferring context: 587.37kB 0.0s done
+2026-Mar-03 06:27:00.066937
+#6 DONE 0.0s
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#7 [builder 3/6] COPY package.json package-lock.json ./
+2026-Mar-03 06:27:00.066937
+#7 DONE 0.0s
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#8 [builder 4/6] RUN npm ci
+2026-Mar-03 06:27:00.066937
+#8 6.406 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-Mar-03 06:27:00.066937
+#8 ...
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#9 [stage-1 4/5] RUN npm ci --omit=dev
+2026-Mar-03 06:27:00.066937
+#9 6.528 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-Mar-03 06:27:00.066937
+#9 14.92
+2026-Mar-03 06:27:00.066937
+#9 14.92 added 395 packages, and audited 396 packages in 15s
+2026-Mar-03 06:27:00.066937
+#9 14.92
+2026-Mar-03 06:27:00.066937
+#9 14.92 63 packages are looking for funding
+2026-Mar-03 06:27:00.066937
+#9 14.92   run `npm fund` for details
+2026-Mar-03 06:27:00.066937
+#9 14.93
+2026-Mar-03 06:27:00.066937
+#9 14.93 3 vulnerabilities (1 low, 1 moderate, 1 high)
+2026-Mar-03 06:27:00.066937
+#9 14.93
+2026-Mar-03 06:27:00.066937
+#9 14.93 To address all issues, run:
+2026-Mar-03 06:27:00.066937
+#9 14.93   npm audit fix
+2026-Mar-03 06:27:00.066937
+#9 14.93
+2026-Mar-03 06:27:00.066937
+#9 14.93 Run `npm audit` for details.
+2026-Mar-03 06:27:00.066937
+#9 14.93 npm notice
+2026-Mar-03 06:27:00.066937
+#9 14.93 npm notice New major version of npm available! 10.8.2 -> 11.11.0
+2026-Mar-03 06:27:00.066937
+#9 14.93 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.0
+2026-Mar-03 06:27:00.066937
+#9 14.93 npm notice To update run: npm install -g npm@11.11.0
+2026-Mar-03 06:27:00.066937
+#9 14.93 npm notice
+2026-Mar-03 06:27:00.066937
+#9 ...
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#8 [builder 4/6] RUN npm ci
+2026-Mar-03 06:27:00.066937
+#8 15.00
+2026-Mar-03 06:27:00.066937
+#8 15.00 added 395 packages, and audited 396 packages in 15s
+2026-Mar-03 06:27:00.066937
+#8 15.00
+2026-Mar-03 06:27:00.066937
+#8 15.00 63 packages are looking for funding
+2026-Mar-03 06:27:00.066937
+#8 15.00   run `npm fund` for details
+2026-Mar-03 06:27:00.066937
+#8 15.00
+2026-Mar-03 06:27:00.066937
+#8 15.00 3 vulnerabilities (1 low, 1 moderate, 1 high)
+2026-Mar-03 06:27:00.066937
+#8 15.00
+2026-Mar-03 06:27:00.066937
+#8 15.00 To address all issues, run:
+2026-Mar-03 06:27:00.066937
+#8 15.00   npm audit fix
+2026-Mar-03 06:27:00.066937
+#8 15.00
+2026-Mar-03 06:27:00.066937
+#8 15.00 Run `npm audit` for details.
+2026-Mar-03 06:27:00.066937
+#8 15.00 npm notice
+2026-Mar-03 06:27:00.066937
+#8 15.00 npm notice New major version of npm available! 10.8.2 -> 11.11.0
+2026-Mar-03 06:27:00.066937
+#8 15.00 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.0
+2026-Mar-03 06:27:00.066937
+#8 15.00 npm notice To update run: npm install -g npm@11.11.0
+2026-Mar-03 06:27:00.066937
+#8 15.00 npm notice
+2026-Mar-03 06:27:00.066937
+#8 ...
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#9 [stage-1 4/5] RUN npm ci --omit=dev
+2026-Mar-03 06:27:00.066937
+#9 DONE 16.2s
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#8 [builder 4/6] RUN npm ci
+2026-Mar-03 06:27:00.066937
+#8 DONE 16.2s
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#10 [builder 5/6] COPY . .
+2026-Mar-03 06:27:00.066937
+#10 DONE 0.1s
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+#11 [builder 6/6] RUN npx tsx script/build.ts
+2026-Mar-03 06:27:00.066937
+#11 1.576 npm warn exec The following package was not found and will be installed: tsx@4.21.0
+2026-Mar-03 06:27:00.066937
+#11 3.299
+2026-Mar-03 06:27:00.066937
+#11 3.299 node:internal/modules/run_main:123
+2026-Mar-03 06:27:00.066937
+#11 3.299     triggerUncaughtException(
+2026-Mar-03 06:27:00.066937
+#11 3.299     ^
+2026-Mar-03 06:27:00.066937
+#11 3.302 Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'esbuild' imported from /app/script/build.ts
+2026-Mar-03 06:27:00.066937
+#11 3.302     at packageResolve (node:internal/modules/esm/resolve:873:9)
+2026-Mar-03 06:27:00.066937
+#11 3.302     at moduleResolve (node:internal/modules/esm/resolve:946:18)
+2026-Mar-03 06:27:00.066937
+#11 3.302     at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+2026-Mar-03 06:27:00.066937
+#11 3.302     at nextResolve (node:internal/modules/esm/hooks:864:28)
+2026-Mar-03 06:27:00.066937
+#11 3.302     at resolveBase (file:///root/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1772519219617:2:3744)
+2026-Mar-03 06:27:00.066937
+#11 3.302     at resolveDirectory (file:///root/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1772519219617:2:4243)
+2026-Mar-03 06:27:00.066937
+#11 3.302     at resolveTsPaths (file:///root/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1772519219617:2:4984)
+2026-Mar-03 06:27:00.066937
+#11 3.302     at async resolve (file:///root/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1772519219617:2:5355)
+2026-Mar-03 06:27:00.066937
+#11 3.302     at async nextResolve (node:internal/modules/esm/hooks:864:22)
+2026-Mar-03 06:27:00.066937
+#11 3.302     at async Hooks.resolve (node:internal/modules/esm/hooks:306:24) {
+2026-Mar-03 06:27:00.066937
+#11 3.302   code: 'ERR_MODULE_NOT_FOUND'
+2026-Mar-03 06:27:00.066937
+#11 3.302 }
+2026-Mar-03 06:27:00.066937
+#11 3.302
+2026-Mar-03 06:27:00.066937
+#11 3.302 Node.js v20.20.0
+2026-Mar-03 06:27:00.066937
+#11 ERROR: process "/bin/sh -c npx tsx script/build.ts" did not complete successfully: exit code: 1
+2026-Mar-03 06:27:00.066937
+------
+2026-Mar-03 06:27:00.066937
+> [builder 6/6] RUN npx tsx script/build.ts:
+2026-Mar-03 06:27:00.066937
+3.302     at resolveBase (file:///root/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1772519219617:2:3744)
+2026-Mar-03 06:27:00.066937
+3.302     at resolveDirectory (file:///root/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1772519219617:2:4243)
+2026-Mar-03 06:27:00.066937
+3.302     at resolveTsPaths (file:///root/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1772519219617:2:4984)
+2026-Mar-03 06:27:00.066937
+3.302     at async resolve (file:///root/.npm/_npx/fd45a72a545557e9/node_modules/tsx/dist/esm/index.mjs?1772519219617:2:5355)
+2026-Mar-03 06:27:00.066937
+3.302     at async nextResolve (node:internal/modules/esm/hooks:864:22)
+2026-Mar-03 06:27:00.066937
+3.302     at async Hooks.resolve (node:internal/modules/esm/hooks:306:24) {
+2026-Mar-03 06:27:00.066937
+3.302   code: 'ERR_MODULE_NOT_FOUND'
+2026-Mar-03 06:27:00.066937
+3.302 }
+2026-Mar-03 06:27:00.066937
+3.302
+2026-Mar-03 06:27:00.066937
+3.302 Node.js v20.20.0
+2026-Mar-03 06:27:00.066937
+------
+2026-Mar-03 06:27:00.066937
+2026-Mar-03 06:27:00.066937
+2 warnings found (use docker --debug to expand):
+2026-Mar-03 06:27:00.066937
+- SecretsUsedInArgOrEnv: Do not use ARG or ENV instructions for sensitive data (ARG "SESSION_SECRET") (line 5)
+2026-Mar-03 06:27:00.066937
+- SecretsUsedInArgOrEnv: Do not use ARG or ENV instructions for sensitive data (ARG "SESSION_SECRET") (line 23)
+2026-Mar-03 06:27:00.066937
+Dockerfile:17
+2026-Mar-03 06:27:00.066937
+--------------------
+2026-Mar-03 06:27:00.066937
+15 |
+2026-Mar-03 06:27:00.066937
+16 |     COPY . .
+2026-Mar-03 06:27:00.066937
+17 | >>> RUN npx tsx script/build.ts
+2026-Mar-03 06:27:00.066937
+18 |
+2026-Mar-03 06:27:00.066937
+19 |     FROM node:20-alpine
+2026-Mar-03 06:27:00.066937
+--------------------
+2026-Mar-03 06:27:00.066937
+ERROR: failed to build: failed to solve: process "/bin/sh -c npx tsx script/build.ts" did not complete successfully: exit code: 1
+2026-Mar-03 06:27:00.066937
+exit status 1
+2026-Mar-03 06:27:00.160283
+========================================
+2026-Mar-03 06:27:00.169154
+Deployment failed. Removing the new version of your application.
