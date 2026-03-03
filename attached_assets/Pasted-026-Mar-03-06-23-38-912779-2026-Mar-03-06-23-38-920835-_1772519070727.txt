@@ -1,0 +1,257 @@
+026-Mar-03 06:23:38.912779
+========================================
+2026-Mar-03 06:23:38.920835
+Deployment failed: Command execution failed (exit code 1): docker exec bo480ow0k8sc0kowssk4kwog bash -c 'bash /artifacts/build.sh'
+2026-Mar-03 06:23:38.920835
+Error: #0 building with "default" instance using docker driver
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#1 [internal] load build definition from Dockerfile
+2026-Mar-03 06:23:38.920835
+#1 transferring dockerfile: 1.18kB 0.0s done
+2026-Mar-03 06:23:38.920835
+#1 DONE 0.1s
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+2026-Mar-03 06:23:38.920835
+#2 DONE 1.4s
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#3 [internal] load .dockerignore
+2026-Mar-03 06:23:38.920835
+#3 transferring context: 118B done
+2026-Mar-03 06:23:38.920835
+#3 DONE 0.0s
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#4 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8
+2026-Mar-03 06:23:38.920835
+#4 resolve docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8 done
+2026-Mar-03 06:23:38.920835
+#4 ...
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#5 [internal] load build context
+2026-Mar-03 06:23:38.920835
+#5 transferring context: 587.36kB 0.0s done
+2026-Mar-03 06:23:38.920835
+#5 DONE 0.1s
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#4 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8
+2026-Mar-03 06:23:38.920835
+#4 sha256:e31b2016552274339ed88ed4a438d78bf37e0f6bdf328d02207b2a598c1ef86d 0B / 445B 0.2s
+2026-Mar-03 06:23:38.920835
+#4 sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8 7.67kB / 7.67kB done
+2026-Mar-03 06:23:38.920835
+#4 sha256:c3324aa3efea082c8d294a93b97ba82adc5498a202bd48802f5a8af152e7dd9e 1.72kB / 1.72kB done
+2026-Mar-03 06:23:38.920835
+#4 sha256:458b0b7c1c6027b37124839bf527a5c54936ab27a9c9643051a3d801c4560a6c 6.52kB / 6.52kB done
+2026-Mar-03 06:23:38.920835
+#4 sha256:ad6d96c196e3198e14ea37df8bba4f54bf92fb525eb65e49fa4027c7dee13f80 0B / 42.78MB 0.2s
+2026-Mar-03 06:23:38.920835
+#4 sha256:eb87f4721c91769ed5206f34a9ab6ec98fc1d5235c12c2fc956665b1155e9ecb 0B / 1.26MB 0.2s
+2026-Mar-03 06:23:38.920835
+#4 sha256:e31b2016552274339ed88ed4a438d78bf37e0f6bdf328d02207b2a598c1ef86d 445B / 445B 0.5s done
+2026-Mar-03 06:23:38.920835
+#4 sha256:ad6d96c196e3198e14ea37df8bba4f54bf92fb525eb65e49fa4027c7dee13f80 15.73MB / 42.78MB 0.5s
+2026-Mar-03 06:23:38.920835
+#4 sha256:ad6d96c196e3198e14ea37df8bba4f54bf92fb525eb65e49fa4027c7dee13f80 31.46MB / 42.78MB 0.7s
+2026-Mar-03 06:23:38.920835
+#4 sha256:eb87f4721c91769ed5206f34a9ab6ec98fc1d5235c12c2fc956665b1155e9ecb 1.26MB / 1.26MB 0.6s done
+2026-Mar-03 06:23:38.920835
+#4 sha256:ad6d96c196e3198e14ea37df8bba4f54bf92fb525eb65e49fa4027c7dee13f80 35.65MB / 42.78MB 0.8s
+2026-Mar-03 06:23:38.920835
+#4 sha256:ad6d96c196e3198e14ea37df8bba4f54bf92fb525eb65e49fa4027c7dee13f80 42.78MB / 42.78MB 0.9s done
+2026-Mar-03 06:23:38.920835
+#4 extracting sha256:ad6d96c196e3198e14ea37df8bba4f54bf92fb525eb65e49fa4027c7dee13f80
+2026-Mar-03 06:23:38.920835
+#4 extracting sha256:ad6d96c196e3198e14ea37df8bba4f54bf92fb525eb65e49fa4027c7dee13f80 2.4s done
+2026-Mar-03 06:23:38.920835
+#4 extracting sha256:eb87f4721c91769ed5206f34a9ab6ec98fc1d5235c12c2fc956665b1155e9ecb
+2026-Mar-03 06:23:38.920835
+#4 extracting sha256:eb87f4721c91769ed5206f34a9ab6ec98fc1d5235c12c2fc956665b1155e9ecb 0.1s done
+2026-Mar-03 06:23:38.920835
+#4 extracting sha256:e31b2016552274339ed88ed4a438d78bf37e0f6bdf328d02207b2a598c1ef86d done
+2026-Mar-03 06:23:38.920835
+#4 DONE 3.7s
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#6 [builder 2/6] WORKDIR /app
+2026-Mar-03 06:23:38.920835
+#6 DONE 0.2s
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#7 [builder 3/6] COPY package.json package-lock.json ./
+2026-Mar-03 06:23:38.920835
+#7 DONE 0.0s
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#8 [stage-1 4/5] RUN npm ci --omit=dev
+2026-Mar-03 06:23:38.920835
+#8 ...
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#9 [builder 4/6] RUN npm ci
+2026-Mar-03 06:23:38.920835
+#9 10.79 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-Mar-03 06:23:38.920835
+#9 ...
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#8 [stage-1 4/5] RUN npm ci --omit=dev
+2026-Mar-03 06:23:38.920835
+#8 11.42 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-Mar-03 06:23:38.920835
+#8 ...
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#9 [builder 4/6] RUN npm ci
+2026-Mar-03 06:23:38.920835
+#9 24.31
+2026-Mar-03 06:23:38.920835
+#9 24.31 added 395 packages, and audited 396 packages in 24s
+2026-Mar-03 06:23:38.920835
+#9 24.31
+2026-Mar-03 06:23:38.920835
+#9 24.31 63 packages are looking for funding
+2026-Mar-03 06:23:38.920835
+#9 24.31   run `npm fund` for details
+2026-Mar-03 06:23:38.920835
+#9 24.33
+2026-Mar-03 06:23:38.920835
+#9 24.33 3 vulnerabilities (1 low, 1 moderate, 1 high)
+2026-Mar-03 06:23:38.920835
+#9 24.33
+2026-Mar-03 06:23:38.920835
+#9 24.33 To address all issues, run:
+2026-Mar-03 06:23:38.920835
+#9 24.33   npm audit fix
+2026-Mar-03 06:23:38.920835
+#9 24.33
+2026-Mar-03 06:23:38.920835
+#9 24.33 Run `npm audit` for details.
+2026-Mar-03 06:23:38.920835
+#9 24.33 npm notice
+2026-Mar-03 06:23:38.920835
+#9 24.33 npm notice New major version of npm available! 10.8.2 -> 11.11.0
+2026-Mar-03 06:23:38.920835
+#9 24.33 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.0
+2026-Mar-03 06:23:38.920835
+#9 24.33 npm notice To update run: npm install -g npm@11.11.0
+2026-Mar-03 06:23:38.920835
+#9 24.33 npm notice
+2026-Mar-03 06:23:38.920835
+#9 ...
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#8 [stage-1 4/5] RUN npm ci --omit=dev
+2026-Mar-03 06:23:38.920835
+#8 24.37
+2026-Mar-03 06:23:38.920835
+#8 24.37 added 395 packages, and audited 396 packages in 24s
+2026-Mar-03 06:23:38.920835
+#8 24.37
+2026-Mar-03 06:23:38.920835
+#8 24.37 63 packages are looking for funding
+2026-Mar-03 06:23:38.920835
+#8 24.38   run `npm fund` for details
+2026-Mar-03 06:23:38.920835
+#8 24.38
+2026-Mar-03 06:23:38.920835
+#8 24.38 3 vulnerabilities (1 low, 1 moderate, 1 high)
+2026-Mar-03 06:23:38.920835
+#8 24.38
+2026-Mar-03 06:23:38.920835
+#8 24.38 To address all issues, run:
+2026-Mar-03 06:23:38.920835
+#8 24.38   npm audit fix
+2026-Mar-03 06:23:38.920835
+#8 24.38
+2026-Mar-03 06:23:38.920835
+#8 24.38 Run `npm audit` for details.
+2026-Mar-03 06:23:38.920835
+#8 24.39 npm notice
+2026-Mar-03 06:23:38.920835
+#8 24.39 npm notice New major version of npm available! 10.8.2 -> 11.11.0
+2026-Mar-03 06:23:38.920835
+#8 24.39 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.0
+2026-Mar-03 06:23:38.920835
+#8 24.39 npm notice To update run: npm install -g npm@11.11.0
+2026-Mar-03 06:23:38.920835
+#8 24.39 npm notice
+2026-Mar-03 06:23:38.920835
+#8 DONE 25.4s
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#9 [builder 4/6] RUN npm ci
+2026-Mar-03 06:23:38.920835
+#9 DONE 25.4s
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#10 [builder 5/6] COPY . .
+2026-Mar-03 06:23:38.920835
+#10 DONE 0.2s
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+#11 [builder 6/6] RUN npm run build
+2026-Mar-03 06:23:38.920835
+#11 0.315
+2026-Mar-03 06:23:38.920835
+#11 0.315 > rest-express@1.0.0 build
+2026-Mar-03 06:23:38.920835
+#11 0.315 > tsx script/build.ts
+2026-Mar-03 06:23:38.920835
+#11 0.315
+2026-Mar-03 06:23:38.920835
+#11 0.319 sh: tsx: not found
+2026-Mar-03 06:23:38.920835
+#11 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 127
+2026-Mar-03 06:23:38.920835
+------
+2026-Mar-03 06:23:38.920835
+> [builder 6/6] RUN npm run build:
+2026-Mar-03 06:23:38.920835
+0.315
+2026-Mar-03 06:23:38.920835
+0.315 > rest-express@1.0.0 build
+2026-Mar-03 06:23:38.920835
+0.315 > tsx script/build.ts
+2026-Mar-03 06:23:38.920835
+0.315
+2026-Mar-03 06:23:38.920835
+0.319 sh: tsx: not found
+2026-Mar-03 06:23:38.920835
+------
+2026-Mar-03 06:23:38.920835
+2026-Mar-03 06:23:38.920835
+2 warnings found (use docker --debug to expand):
+2026-Mar-03 06:23:38.920835
+- SecretsUsedInArgOrEnv: Do not use ARG or ENV instructions for sensitive data (ARG "SESSION_SECRET") (line 5)
+2026-Mar-03 06:23:38.920835
+- SecretsUsedInArgOrEnv: Do not use ARG or ENV instructions for sensitive data (ARG "SESSION_SECRET") (line 23)
+2026-Mar-03 06:23:38.920835
+Dockerfile:17
+2026-Mar-03 06:23:38.920835
+--------------------
+2026-Mar-03 06:23:38.920835
+15 |
+2026-Mar-03 06:23:38.920835
+16 |     COPY . .
+2026-Mar-03 06:23:38.920835
+17 | >>> RUN npm run build
+2026-Mar-03 06:23:38.920835
+18 |
+2026-Mar-03 06:23:38.920835
+19 |     FROM node:20-alpine
+2026-Mar-03 06:23:38.920835
+--------------------
+2026-Mar-03 06:23:38.920835
+ERROR: failed to build: failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 127
+2026-Mar-03 06:23:38.920835
+exit status 1
+2026-Mar-03 06:23:39.010830
+========================================
+2026-Mar-03 06:23:39.019073
+Deployment failed. Removing the new version of your application.
