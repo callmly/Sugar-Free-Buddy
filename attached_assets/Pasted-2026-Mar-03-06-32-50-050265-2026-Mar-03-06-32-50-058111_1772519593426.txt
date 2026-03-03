@@ -1,0 +1,245 @@
+2026-Mar-03 06:32:50.050265
+========================================
+2026-Mar-03 06:32:50.058111
+Deployment failed: Command execution failed (exit code 1): docker exec csokgwc0g8cwc0cgso4cwwsg bash -c 'bash /artifacts/build.sh'
+2026-Mar-03 06:32:50.058111
+Error: #0 building with "default" instance using docker driver
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#1 [internal] load build definition from Dockerfile
+2026-Mar-03 06:32:50.058111
+#1 transferring dockerfile: 1.19kB done
+2026-Mar-03 06:32:50.058111
+#1 DONE 0.0s
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+2026-Mar-03 06:32:50.058111
+#2 DONE 0.4s
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#3 [internal] load .dockerignore
+2026-Mar-03 06:32:50.058111
+#3 transferring context: 118B done
+2026-Mar-03 06:32:50.058111
+#3 DONE 0.0s
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#4 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8
+2026-Mar-03 06:32:50.058111
+#4 DONE 0.0s
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#5 [builder 2/6] WORKDIR /app
+2026-Mar-03 06:32:50.058111
+#5 CACHED
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#6 [internal] load build context
+2026-Mar-03 06:32:50.058111
+#6 transferring context: 588.75kB 0.0s done
+2026-Mar-03 06:32:50.058111
+#6 DONE 0.0s
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#7 [builder 3/6] COPY package.json package-lock.json ./
+2026-Mar-03 06:32:50.058111
+#7 DONE 0.0s
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#8 [stage-1 4/5] RUN npm ci --omit=dev
+2026-Mar-03 06:32:50.058111
+#8 5.774 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-Mar-03 06:32:50.058111
+#8 ...
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#9 [builder 4/6] RUN npm ci
+2026-Mar-03 06:32:50.058111
+#9 5.590 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-Mar-03 06:32:50.058111
+#9 12.33
+2026-Mar-03 06:32:50.058111
+#9 12.33 added 395 packages, and audited 396 packages in 12s
+2026-Mar-03 06:32:50.058111
+#9 12.33
+2026-Mar-03 06:32:50.058111
+#9 12.33 63 packages are looking for funding
+2026-Mar-03 06:32:50.058111
+#9 12.33   run `npm fund` for details
+2026-Mar-03 06:32:50.058111
+#9 12.34
+2026-Mar-03 06:32:50.058111
+#9 12.34 3 vulnerabilities (1 low, 1 moderate, 1 high)
+2026-Mar-03 06:32:50.058111
+#9 12.34
+2026-Mar-03 06:32:50.058111
+#9 12.34 To address all issues, run:
+2026-Mar-03 06:32:50.058111
+#9 12.34   npm audit fix
+2026-Mar-03 06:32:50.058111
+#9 12.34
+2026-Mar-03 06:32:50.058111
+#9 12.34 Run `npm audit` for details.
+2026-Mar-03 06:32:50.058111
+#9 12.34 npm notice
+2026-Mar-03 06:32:50.058111
+#9 12.34 npm notice New major version of npm available! 10.8.2 -> 11.11.0
+2026-Mar-03 06:32:50.058111
+#9 12.34 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.0
+2026-Mar-03 06:32:50.058111
+#9 12.34 npm notice To update run: npm install -g npm@11.11.0
+2026-Mar-03 06:32:50.058111
+#9 12.34 npm notice
+2026-Mar-03 06:32:50.058111
+#9 ...
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#8 [stage-1 4/5] RUN npm ci --omit=dev
+2026-Mar-03 06:32:50.058111
+#8 12.47
+2026-Mar-03 06:32:50.058111
+#8 12.47 added 395 packages, and audited 396 packages in 12s
+2026-Mar-03 06:32:50.058111
+#8 12.47
+2026-Mar-03 06:32:50.058111
+#8 12.47 63 packages are looking for funding
+2026-Mar-03 06:32:50.058111
+#8 12.47   run `npm fund` for details
+2026-Mar-03 06:32:50.058111
+#8 12.48
+2026-Mar-03 06:32:50.058111
+#8 12.48 3 vulnerabilities (1 low, 1 moderate, 1 high)
+2026-Mar-03 06:32:50.058111
+#8 12.48
+2026-Mar-03 06:32:50.058111
+#8 12.48 To address all issues, run:
+2026-Mar-03 06:32:50.058111
+#8 12.48   npm audit fix
+2026-Mar-03 06:32:50.058111
+#8 12.48
+2026-Mar-03 06:32:50.058111
+#8 12.48 Run `npm audit` for details.
+2026-Mar-03 06:32:50.058111
+#8 12.48 npm notice
+2026-Mar-03 06:32:50.058111
+#8 12.48 npm notice New major version of npm available! 10.8.2 -> 11.11.0
+2026-Mar-03 06:32:50.058111
+#8 12.48 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.0
+2026-Mar-03 06:32:50.058111
+#8 12.48 npm notice To update run: npm install -g npm@11.11.0
+2026-Mar-03 06:32:50.058111
+#8 12.48 npm notice
+2026-Mar-03 06:32:50.058111
+#8 ...
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#9 [builder 4/6] RUN npm ci
+2026-Mar-03 06:32:50.058111
+#9 DONE 13.4s
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#8 [stage-1 4/5] RUN npm ci --omit=dev
+2026-Mar-03 06:32:50.058111
+#8 DONE 13.4s
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#10 [builder 5/6] COPY . .
+2026-Mar-03 06:32:50.058111
+#10 DONE 0.1s
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+#11 [builder 6/6] RUN node script/build.mjs
+2026-Mar-03 06:32:50.058111
+#11 0.155 node:internal/modules/esm/resolve:873
+2026-Mar-03 06:32:50.058111
+#11 0.155   throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+2026-Mar-03 06:32:50.058111
+#11 0.155         ^
+2026-Mar-03 06:32:50.058111
+#11 0.155
+2026-Mar-03 06:32:50.058111
+#11 0.155 Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'esbuild' imported from /app/script/build.mjs
+2026-Mar-03 06:32:50.058111
+#11 0.155     at packageResolve (node:internal/modules/esm/resolve:873:9)
+2026-Mar-03 06:32:50.058111
+#11 0.155     at moduleResolve (node:internal/modules/esm/resolve:946:18)
+2026-Mar-03 06:32:50.058111
+#11 0.155     at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+2026-Mar-03 06:32:50.058111
+#11 0.155     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:708:12)
+2026-Mar-03 06:32:50.058111
+#11 0.155     at #cachedDefaultResolve (node:internal/modules/esm/loader:657:25)
+2026-Mar-03 06:32:50.058111
+#11 0.155     at ModuleLoader.resolve (node:internal/modules/esm/loader:640:38)
+2026-Mar-03 06:32:50.058111
+#11 0.155     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:264:38)
+2026-Mar-03 06:32:50.058111
+#11 0.155     at ModuleJob._link (node:internal/modules/esm/module_job:168:49) {
+2026-Mar-03 06:32:50.058111
+#11 0.155   code: 'ERR_MODULE_NOT_FOUND'
+2026-Mar-03 06:32:50.058111
+#11 0.155 }
+2026-Mar-03 06:32:50.058111
+#11 0.155
+2026-Mar-03 06:32:50.058111
+#11 0.155 Node.js v20.20.0
+2026-Mar-03 06:32:50.058111
+#11 ERROR: process "/bin/sh -c node script/build.mjs" did not complete successfully: exit code: 1
+2026-Mar-03 06:32:50.058111
+------
+2026-Mar-03 06:32:50.058111
+> [builder 6/6] RUN node script/build.mjs:
+2026-Mar-03 06:32:50.058111
+0.155     at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+2026-Mar-03 06:32:50.058111
+0.155     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:708:12)
+2026-Mar-03 06:32:50.058111
+0.155     at #cachedDefaultResolve (node:internal/modules/esm/loader:657:25)
+2026-Mar-03 06:32:50.058111
+0.155     at ModuleLoader.resolve (node:internal/modules/esm/loader:640:38)
+2026-Mar-03 06:32:50.058111
+0.155     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:264:38)
+2026-Mar-03 06:32:50.058111
+0.155     at ModuleJob._link (node:internal/modules/esm/module_job:168:49) {
+2026-Mar-03 06:32:50.058111
+0.155   code: 'ERR_MODULE_NOT_FOUND'
+2026-Mar-03 06:32:50.058111
+0.155 }
+2026-Mar-03 06:32:50.058111
+0.155
+2026-Mar-03 06:32:50.058111
+0.155 Node.js v20.20.0
+2026-Mar-03 06:32:50.058111
+------
+2026-Mar-03 06:32:50.058111
+2026-Mar-03 06:32:50.058111
+2 warnings found (use docker --debug to expand):
+2026-Mar-03 06:32:50.058111
+- SecretsUsedInArgOrEnv: Do not use ARG or ENV instructions for sensitive data (ARG "SESSION_SECRET") (line 23)
+2026-Mar-03 06:32:50.058111
+- SecretsUsedInArgOrEnv: Do not use ARG or ENV instructions for sensitive data (ARG "SESSION_SECRET") (line 5)
+2026-Mar-03 06:32:50.058111
+Dockerfile:17
+2026-Mar-03 06:32:50.058111
+--------------------
+2026-Mar-03 06:32:50.058111
+15 |
+2026-Mar-03 06:32:50.058111
+16 |     COPY . .
+2026-Mar-03 06:32:50.058111
+17 | >>> RUN node script/build.mjs
+2026-Mar-03 06:32:50.058111
+18 |
+2026-Mar-03 06:32:50.058111
+19 |     FROM node:20-alpine
+2026-Mar-03 06:32:50.058111
+--------------------
+2026-Mar-03 06:32:50.058111
+ERROR: failed to build: failed to solve: process "/bin/sh -c node script/build.mjs" did not complete successfully: exit code: 1
+2026-Mar-03 06:32:50.058111
+exit status 1
+2026-Mar-03 06:32:50.141102
+========================================
+2026-Mar-03 06:32:50.151526
+Deployment failed. Removing the new version of your application.
