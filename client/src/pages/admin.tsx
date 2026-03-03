@@ -40,7 +40,7 @@ import { useEffect, useState } from "react";
       try {
         const res = await fetch("/api/admin/settings");
         if (!res.ok) {
-          if (res.status === 401) {
+          if (res.status === 401 || res.status === 403) {
             setLocation("/login");
             return;
           }
@@ -83,6 +83,10 @@ import { useEffect, useState } from "react";
           }),
         });
 
+        if (res.status === 401 || res.status === 403) {
+          setLocation("/login");
+          return;
+        }
         if (!res.ok) throw new Error("Failed to save settings");
 
         const data = await res.json();
