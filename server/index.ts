@@ -97,8 +97,13 @@ app.use((req, res, next) => {
         const vite = await setupVite(server, app);
         serveStatic(app, vite);
       } else {
-        const distPublic = path.resolve(process.cwd(), "dist", "public");
+        const serverDir = typeof __dirname !== "undefined" ? __dirname : path.dirname(new URL(import.meta.url).pathname);
+        const distPublic = path.resolve(serverDir, "public");
+        console.log(`Production mode - serving static files from: ${distPublic}`);
+        console.log(`Directory exists: ${fs.existsSync(distPublic)}`);
         if (fs.existsSync(distPublic)) {
+          const files = fs.readdirSync(distPublic);
+          console.log(`Files in dist/public: ${files.join(", ")}`);
           app.use(express.static(distPublic));
         }
         app.get(/^(?!\/api).*$/, (_req, res) => {
@@ -106,6 +111,7 @@ app.use((req, res, next) => {
           if (fs.existsSync(indexPath)) {
             res.sendFile(indexPath);
           } else {
+            console.error(`index.html not found at: ${indexPath}`);
             res.status(404).send("Not found");
           }
         });
