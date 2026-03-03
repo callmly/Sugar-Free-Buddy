@@ -77,6 +77,10 @@ const requireAdmin = async (req: Request, res: Response, next: Function) => {
     next();
 };
 
+app.get("/api/health", (_req, res) => {
+    res.status(200).json({ status: "ok" });
+});
+
 app.get("/api/auth/registration-allowed", async (_req, res) => {
     try {
       const [settings] = await db.select().from(adminSettings).limit(1);
