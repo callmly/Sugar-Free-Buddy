@@ -22,6 +22,11 @@ type User = {
   username: string;
 };
 
+type OnlineUser = {
+  userId: string;
+  username: string;
+};
+
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
@@ -30,6 +35,7 @@ export default function DashboardPage() {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
 
   const [mood, setMood] = useState<number | null>(null);
   const [craving, setCraving] = useState<number | null>(null);
@@ -48,6 +54,8 @@ export default function DashboardPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const userRef = useRef<User | null>(null);
+
   useEffect(() => {
     fetchUser();
     fetchStreak();
@@ -56,7 +64,12 @@ export default function DashboardPage() {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
 
-    ws.onopen = () => console.log("WebSocket connected");
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+      if (userRef.current) {
+        ws.send(JSON.stringify({ type: "identify", userId: userRef.current.id, username: userRef.current.username }));
+      }
+    };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -64,12 +77,20 @@ export default function DashboardPage() {
         setMessages((prev) => [...prev, data.message]);
       } else if (data.type === "streak_update") {
         fetchStreak();
+      } else if (data.type === "online_users") {
+        setOnlineUsers(data.users);
       }
     };
 
     wsRef.current = ws;
     return () => ws.close();
   }, []);
+
+  useEffect(() => {
+    if (user && wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "identify", userId: user.id, username: user.username }));
+    }
+  }, [user]);
 
   useEffect(() => {
     scrollToBottom();
@@ -81,6 +102,7 @@ export default function DashboardPage() {
       if (!res.ok) { setLocation("/login"); return; }
       const data = await res.json();
       setUser(data.user);
+      userRef.current = data.user;
     } catch { setLocation("/login"); }
     finally { setLoading(false); }
   };
@@ -215,11 +237,25 @@ export default function DashboardPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50" data-testid="dashboard-page">
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-4 py-3 flex items-center justify-between shrink-0 shadow-md">
-        <div className="flex items-center gap-2 min-w-0">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-4 py-2.5 flex items-center justify-between shrink-0 shadow-md">
+        <div className="flex flex-col gap-0.5 min-w-0">
           <span className="text-base font-semibold truncate" data-testid="text-streak">
             Be saldumynų: {streak.days} d. {streak.hours} val. {streak.minutes} min.
           </span>
+          <div className="flex items-center gap-2 text-xs text-white/80" data-testid="online-status">
+            {onlineUsers.map((u) => (
+              <span key={u.userId} className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse" />
+                {u.username}
+              </span>
+            ))}
+            {onlineUsers.length === 0 && (
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />
+                Niekas neprisijungęs
+              </span>
+            )}
+          </div>
         </div>
         <Button
           variant="ghost"

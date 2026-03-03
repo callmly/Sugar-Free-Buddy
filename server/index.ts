@@ -12,10 +12,36 @@ const server = createServer(app);
 
 const wss = new WebSocketServer({ server, path: "/ws" });
 
+const onlineUsers = new Map<import("ws").WebSocket, { userId: string; username: string }>();
+
+function broadcastOnlineStatus() {
+  const onlineList = Array.from(onlineUsers.values()).map((u) => ({
+    userId: u.userId,
+    username: u.username,
+  }));
+  const unique = onlineList.filter(
+    (u, i, arr) => arr.findIndex((a) => a.userId === u.userId) === i
+  );
+  const payload = JSON.stringify({ type: "online_users", users: unique });
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) {
+      client.send(payload);
+    }
+  });
+}
+
 wss.on("connection", (ws) => {
     log("WebSocket client connected");
 
     ws.on("message", (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        if (data.type === "identify") {
+          onlineUsers.set(ws, { userId: data.userId, username: data.username });
+          broadcastOnlineStatus();
+          return;
+        }
+      } catch {}
       wss.clients.forEach((client) => {
         if (client.readyState === 1) {
           client.send(message.toString());
@@ -24,6 +50,8 @@ wss.on("connection", (ws) => {
     });
 
     ws.on("close", () => {
+      onlineUsers.delete(ws);
+      broadcastOnlineStatus();
       log("WebSocket client disconnected");
     });
 });
