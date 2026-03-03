@@ -1,0 +1,188 @@
+2026-Mar-03 06:30:00.064753
+Deployment failed: Command execution failed (exit code 1): docker exec pkwscg0404c4ogco4gww480k bash -c 'bash /artifacts/build.sh'
+2026-Mar-03 06:30:00.064753
+Error: #0 building with "default" instance using docker driver
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#1 [internal] load build definition from Dockerfile
+2026-Mar-03 06:30:00.064753
+#1 transferring dockerfile: 1.20kB done
+2026-Mar-03 06:30:00.064753
+#1 DONE 0.0s
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+2026-Mar-03 06:30:00.064753
+#2 DONE 0.5s
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#3 [internal] load .dockerignore
+2026-Mar-03 06:30:00.064753
+#3 transferring context: 118B done
+2026-Mar-03 06:30:00.064753
+#3 DONE 0.0s
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#4 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8
+2026-Mar-03 06:30:00.064753
+#4 DONE 0.0s
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#5 [builder 2/6] WORKDIR /app
+2026-Mar-03 06:30:00.064753
+#5 CACHED
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#6 [internal] load build context
+2026-Mar-03 06:30:00.064753
+#6 transferring context: 587.39kB 0.0s done
+2026-Mar-03 06:30:00.064753
+#6 DONE 0.0s
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#7 [builder 3/6] COPY package.json package-lock.json ./
+2026-Mar-03 06:30:00.064753
+#7 DONE 0.1s
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#8 [builder 4/6] RUN npm ci
+2026-Mar-03 06:30:00.064753
+#8 5.958 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-Mar-03 06:30:00.064753
+#8 ...
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#9 [stage-1 4/5] RUN npm ci --omit=dev
+2026-Mar-03 06:30:00.064753
+#9 5.440 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2026-Mar-03 06:30:00.064753
+#9 13.27
+2026-Mar-03 06:30:00.064753
+#9 13.27 added 395 packages, and audited 396 packages in 13s
+2026-Mar-03 06:30:00.064753
+#9 13.27
+2026-Mar-03 06:30:00.064753
+#9 13.27 63 packages are looking for funding
+2026-Mar-03 06:30:00.064753
+#9 13.27   run `npm fund` for details
+2026-Mar-03 06:30:00.064753
+#9 13.27
+2026-Mar-03 06:30:00.064753
+#9 13.27 3 vulnerabilities (1 low, 1 moderate, 1 high)
+2026-Mar-03 06:30:00.064753
+#9 13.27
+2026-Mar-03 06:30:00.064753
+#9 13.27 To address all issues, run:
+2026-Mar-03 06:30:00.064753
+#9 13.27   npm audit fix
+2026-Mar-03 06:30:00.064753
+#9 13.27
+2026-Mar-03 06:30:00.064753
+#9 13.27 Run `npm audit` for details.
+2026-Mar-03 06:30:00.064753
+#9 13.28 npm notice
+2026-Mar-03 06:30:00.064753
+#9 13.28 npm notice New major version of npm available! 10.8.2 -> 11.11.0
+2026-Mar-03 06:30:00.064753
+#9 13.28 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.0
+2026-Mar-03 06:30:00.064753
+#9 13.28 npm notice To update run: npm install -g npm@11.11.0
+2026-Mar-03 06:30:00.064753
+#9 13.28 npm notice
+2026-Mar-03 06:30:00.064753
+#9 ...
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#8 [builder 4/6] RUN npm ci
+2026-Mar-03 06:30:00.064753
+#8 13.37
+2026-Mar-03 06:30:00.064753
+#8 13.37 added 395 packages, and audited 396 packages in 13s
+2026-Mar-03 06:30:00.064753
+#8 13.37
+2026-Mar-03 06:30:00.064753
+#8 13.37 63 packages are looking for funding
+2026-Mar-03 06:30:00.064753
+#8 13.37   run `npm fund` for details
+2026-Mar-03 06:30:00.064753
+#8 13.38
+2026-Mar-03 06:30:00.064753
+#8 13.38 3 vulnerabilities (1 low, 1 moderate, 1 high)
+2026-Mar-03 06:30:00.064753
+#8 13.38
+2026-Mar-03 06:30:00.064753
+#8 13.38 To address all issues, run:
+2026-Mar-03 06:30:00.064753
+#8 13.38   npm audit fix
+2026-Mar-03 06:30:00.064753
+#8 13.38
+2026-Mar-03 06:30:00.064753
+#8 13.38 Run `npm audit` for details.
+2026-Mar-03 06:30:00.064753
+#8 13.38 npm notice
+2026-Mar-03 06:30:00.064753
+#8 13.38 npm notice New major version of npm available! 10.8.2 -> 11.11.0
+2026-Mar-03 06:30:00.064753
+#8 13.38 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.11.0
+2026-Mar-03 06:30:00.064753
+#8 13.38 npm notice To update run: npm install -g npm@11.11.0
+2026-Mar-03 06:30:00.064753
+#8 13.38 npm notice
+2026-Mar-03 06:30:00.064753
+#8 DONE 14.4s
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#9 [stage-1 4/5] RUN npm ci --omit=dev
+2026-Mar-03 06:30:00.064753
+#9 DONE 14.4s
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#10 [builder 5/6] COPY . .
+2026-Mar-03 06:30:00.064753
+#10 DONE 0.1s
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+#11 [builder 6/6] RUN ./node_modules/.bin/tsx script/build.ts
+2026-Mar-03 06:30:00.064753
+#11 0.077 /bin/sh: ./node_modules/.bin/tsx: not found
+2026-Mar-03 06:30:00.064753
+#11 ERROR: process "/bin/sh -c ./node_modules/.bin/tsx script/build.ts" did not complete successfully: exit code: 127
+2026-Mar-03 06:30:00.064753
+------
+2026-Mar-03 06:30:00.064753
+> [builder 6/6] RUN ./node_modules/.bin/tsx script/build.ts:
+2026-Mar-03 06:30:00.064753
+0.077 /bin/sh: ./node_modules/.bin/tsx: not found
+2026-Mar-03 06:30:00.064753
+------
+2026-Mar-03 06:30:00.064753
+2026-Mar-03 06:30:00.064753
+2 warnings found (use docker --debug to expand):
+2026-Mar-03 06:30:00.064753
+- SecretsUsedInArgOrEnv: Do not use ARG or ENV instructions for sensitive data (ARG "SESSION_SECRET") (line 5)
+2026-Mar-03 06:30:00.064753
+- SecretsUsedInArgOrEnv: Do not use ARG or ENV instructions for sensitive data (ARG "SESSION_SECRET") (line 23)
+2026-Mar-03 06:30:00.064753
+Dockerfile:17
+2026-Mar-03 06:30:00.064753
+--------------------
+2026-Mar-03 06:30:00.064753
+15 |
+2026-Mar-03 06:30:00.064753
+16 |     COPY . .
+2026-Mar-03 06:30:00.064753
+17 | >>> RUN ./node_modules/.bin/tsx script/build.ts
+2026-Mar-03 06:30:00.064753
+18 |
+2026-Mar-03 06:30:00.064753
+19 |     FROM node:20-alpine
+2026-Mar-03 06:30:00.064753
+--------------------
+2026-Mar-03 06:30:00.064753
+ERROR: failed to build: failed to solve: process "/bin/sh -c ./node_modules/.bin/tsx script/build.ts" did not complete successfully: exit code: 127
+2026-Mar-03 06:30:00.064753
+exit status 1
+2026-Mar-03 06:30:00.150593
+========================================
+2026-Mar-03 06:30:00.166740
+Deployment failed. Removing the new version of your application.
