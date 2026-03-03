@@ -97,7 +97,7 @@ app.use((req, res, next) => {
         const vite = await setupVite(server, app);
         serveStatic(app, vite);
       } else {
-        const distPublic = path.resolve(import.meta.dirname, "..", "dist", "public");
+        const distPublic = path.resolve(process.cwd(), "dist", "public");
         if (fs.existsSync(distPublic)) {
           app.use(express.static(distPublic));
         }
