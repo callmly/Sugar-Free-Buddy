@@ -41,8 +41,9 @@ export type Message = typeof messages.$inferSelect;
 export const checkIns = pgTable("check_ins", {
 id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
 userId: varchar("user_id").references(() => users.id).notNull(),
-mood: integer("mood").notNull(), // 0-5
-craving: integer("craving").notNull(), // 0-5
+mood: integer("mood").notNull(),
+craving: integer("craving").notNull(),
+energy: integer("energy").notNull().default(3),
 trigger: text("trigger"),
 note: text("note"),
 createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -52,6 +53,7 @@ export const insertCheckInSchema = createInsertSchema(checkIns).pick({
 userId: true,
 mood: true,
 craving: true,
+energy: true,
 trigger: true,
 note: true,
 });

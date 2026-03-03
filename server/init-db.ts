@@ -22,6 +22,7 @@ async function initDatabase() {
       user_id VARCHAR REFERENCES users(id) NOT NULL,
       mood INTEGER NOT NULL,
       craving INTEGER NOT NULL,
+      energy INTEGER NOT NULL DEFAULT 3,
       trigger TEXT,
       note TEXT,
       created_at TIMESTAMP DEFAULT NOW() NOT NULL

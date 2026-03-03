@@ -33,6 +33,7 @@ export default function DashboardPage() {
 
   const [mood, setMood] = useState<number | null>(null);
   const [craving, setCraving] = useState<number | null>(null);
+  const [energy, setEnergy] = useState<number | null>(null);
   const [note, setNote] = useState<string>("");
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [submittingCheckIn, setSubmittingCheckIn] = useState(false);
@@ -142,8 +143,8 @@ export default function DashboardPage() {
 
   const submitCheckIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mood === null || craving === null) {
-      toast({ title: "Klaida", description: "Pasirinkite nuotaiką ir potraukį", variant: "destructive" });
+    if (mood === null || craving === null || energy === null) {
+      toast({ title: "Klaida", description: "Pasirinkite visus parametrus", variant: "destructive" });
       return;
     }
     setSubmittingCheckIn(true);
@@ -152,7 +153,7 @@ export default function DashboardPage() {
         const res = await fetch(`/api/checkins/${todayCheckIn.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mood, craving, note }),
+          body: JSON.stringify({ mood, craving, energy, note }),
         });
         if (!res.ok) {
           const data = await res.json();
@@ -165,7 +166,7 @@ export default function DashboardPage() {
         const res = await fetch("/api/checkins", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mood, craving, note }),
+          body: JSON.stringify({ mood, craving, energy, note }),
         });
         if (!res.ok) {
           const data = await res.json();
@@ -189,6 +190,7 @@ export default function DashboardPage() {
   const resetCheckInForm = () => {
     setMood(null);
     setCraving(null);
+    setEnergy(null);
     setNote("");
     setTodayCheckIn(null);
     setIsEditing(false);
@@ -357,6 +359,7 @@ export default function DashboardPage() {
               <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
                 <div>Nuotaika: <strong>{todayCheckIn.mood}/5</strong></div>
                 <div>Potraukis: <strong>{todayCheckIn.craving}/5</strong></div>
+                <div>Energija: <strong>{todayCheckIn.energy}/5</strong></div>
                 {todayCheckIn.note && <div>Pastaba: <em>{todayCheckIn.note}</em></div>}
               </div>
               <Button
@@ -366,6 +369,7 @@ export default function DashboardPage() {
                   setIsEditing(true);
                   setMood(todayCheckIn.mood);
                   setCraving(todayCheckIn.craving);
+                  setEnergy(todayCheckIn.energy);
                   setNote(todayCheckIn.note || "");
                 }}
                 data-testid="button-edit-checkin"
@@ -422,6 +426,31 @@ export default function DashboardPage() {
               <div className="flex justify-between text-[11px] text-gray-400 px-1">
                 <span>Nenoriu</span>
                 <span>Labai noriu</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Energija</Label>
+              <div className="flex justify-between gap-1">
+                {[1, 2, 3, 4, 5].map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setEnergy(val)}
+                    className={`w-12 h-12 rounded-full text-sm font-semibold transition-all ${
+                      energy === val
+                        ? "bg-green-500 text-white scale-110 shadow-md"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                    data-testid={`button-energy-${val}`}
+                  >
+                    {val}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-between text-[11px] text-gray-400 px-1">
+                <span>Nėra jėgų</span>
+                <span>Skraidau</span>
               </div>
             </div>
 

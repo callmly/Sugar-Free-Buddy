@@ -311,6 +311,7 @@ app.get("/api/stats", requireAuth, async (req, res) => {
           userId: checkIns.userId,
           mood: checkIns.mood,
           craving: checkIns.craving,
+          energy: checkIns.energy,
           trigger: checkIns.trigger,
           note: checkIns.note,
           createdAt: checkIns.createdAt,
@@ -328,12 +329,16 @@ app.get("/api/stats", requireAuth, async (req, res) => {
         const avgCraving = userCheckins.length
           ? (userCheckins.reduce((s, c) => s + c.craving, 0) / userCheckins.length).toFixed(1)
           : null;
+        const avgEnergy = userCheckins.length
+          ? (userCheckins.reduce((s, c) => s + c.energy, 0) / userCheckins.length).toFixed(1)
+          : null;
         return {
           userId: u.id,
           username: u.username,
           totalCheckins: userCheckins.length,
           avgMood,
           avgCraving,
+          avgEnergy,
         };
       });
 
@@ -376,17 +381,18 @@ app.get("/api/checkins/today", requireAuth, async (req, res) => {
 
 app.post("/api/checkins", requireAuth, async (req, res) => {
     try {
-      const { mood, craving, note } = req.body;
+      const { mood, craving, energy, note } = req.body;
 
-      if (mood === undefined || craving === undefined) {
-        return res.status(400).json({ error: "Mood and craving are required" });
+      if (mood === undefined || craving === undefined || energy === undefined) {
+        return res.status(400).json({ error: "Mood, craving and energy are required" });
       }
 
       const moodVal = parseInt(mood);
       const cravingVal = parseInt(craving);
+      const energyVal = parseInt(energy);
 
-      if (moodVal < 1 || moodVal > 5 || cravingVal < 1 || cravingVal > 5) {
-        return res.status(400).json({ error: "Mood and craving must be between 1 and 5" });
+      if (moodVal < 1 || moodVal > 5 || cravingVal < 1 || cravingVal > 5 || energyVal < 1 || energyVal > 5) {
+        return res.status(400).json({ error: "Values must be between 1 and 5" });
       }
 
       const now = new Date();
@@ -413,6 +419,7 @@ app.post("/api/checkins", requireAuth, async (req, res) => {
         userId: req.session.userId!,
         mood: moodVal,
         craving: cravingVal,
+        energy: energyVal,
         trigger: null,
         note: note || null,
       }).returning();
@@ -421,10 +428,12 @@ app.post("/api/checkins", requireAuth, async (req, res) => {
 
       const moodLabels: Record<number, string> = { 1: "Bloga", 2: "Prasta", 3: "Vidutinė", 4: "Gera", 5: "Puiki" };
       const cravingLabels: Record<number, string> = { 1: "Nenoriu", 2: "Šiek tiek", 3: "Vidutiniškai", 4: "Noriu", 5: "Labai noriu" };
+      const energyLabels: Record<number, string> = { 1: "Nėra jėgų", 2: "Silpna", 3: "Vidutinė", 4: "Gera", 5: "Skraidau" };
 
       let checkInText = `📊 Dienos savijauta:\n`;
       checkInText += `Nuotaika: ${moodVal}/5 (${moodLabels[moodVal]})\n`;
-      checkInText += `Potraukis: ${cravingVal}/5 (${cravingLabels[cravingVal]})`;
+      checkInText += `Potraukis: ${cravingVal}/5 (${cravingLabels[cravingVal]})\n`;
+      checkInText += `Energija: ${energyVal}/5 (${energyLabels[energyVal]})`;
       if (note) checkInText += `\n💬 ${note}`;
 
       const [chatMsg] = await db.insert(messages).values({
@@ -465,7 +474,7 @@ app.post("/api/checkins", requireAuth, async (req, res) => {
               lastCheckins.forEach((c, i) => {
                 const d = new Date(c.createdAt);
                 const dateStr = `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-                historyText += `${i + 1}. ${dateStr} - Nuotaika: ${c.mood}/5, Potraukis: ${c.craving}/5${c.note ? ` (${c.note})` : ""}\n`;
+                historyText += `${i + 1}. ${dateStr} - Nuotaika: ${c.mood}/5, Potraukis: ${c.craving}/5, Energija: ${c.energy}/5${c.note ? ` (${c.note})` : ""}\n`;
               });
             }
 
@@ -476,6 +485,7 @@ app.post("/api/checkins", requireAuth, async (req, res) => {
             const userPrompt = `Vartotojas ${senderName} pateikė dienos savijautą:
 - Nuotaika: ${moodVal}/5 (${moodLabels[moodVal]})
 - Potraukis saldumynams: ${cravingVal}/5 (${cravingLabels[cravingVal]})
+- Energija: ${energyVal}/5 (${energyLabels[energyVal]})
 ${note ? `- Pastaba: ${note}` : ""}
 
 Dabartinė serija: ${days} dienų ir ${hours} valandų be saldumynų.${historyText}
@@ -515,13 +525,14 @@ Parašyk palaikantį atsakymą lietuviškai (3-6 sakiniais). Palygink su ankstes
 app.put("/api/checkins/:id", requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      const { mood, craving, note } = req.body;
+      const { mood, craving, energy, note } = req.body;
 
       const moodVal = parseInt(mood);
       const cravingVal = parseInt(craving);
+      const energyVal = parseInt(energy);
 
-      if (moodVal < 1 || moodVal > 5 || cravingVal < 1 || cravingVal > 5) {
-        return res.status(400).json({ error: "Mood and craving must be between 1 and 5" });
+      if (moodVal < 1 || moodVal > 5 || cravingVal < 1 || cravingVal > 5 || energyVal < 1 || energyVal > 5) {
+        return res.status(400).json({ error: "Values must be between 1 and 5" });
       }
 
       const [existing] = await db.select().from(checkIns).where(eq(checkIns.id, id)).limit(1);
@@ -537,7 +548,7 @@ app.put("/api/checkins/:id", requireAuth, async (req, res) => {
 
       const [updated] = await db
         .update(checkIns)
-        .set({ mood: moodVal, craving: cravingVal, note: note || null })
+        .set({ mood: moodVal, craving: cravingVal, energy: energyVal, note: note || null })
         .where(eq(checkIns.id, id))
         .returning();
 

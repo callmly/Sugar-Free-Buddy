@@ -10,6 +10,7 @@ type CheckInEntry = {
   userId: string;
   mood: number;
   craving: number;
+  energy: number;
   trigger: string;
   note: string | null;
   createdAt: string;
@@ -22,6 +23,7 @@ type UserStat = {
   totalCheckins: number;
   avgMood: string | null;
   avgCraving: string | null;
+  avgEnergy: string | null;
 };
 
 type ChartPoint = {
@@ -37,6 +39,7 @@ export default function StatisticsPage() {
   const [entries, setEntries] = useState<CheckInEntry[]>([]);
   const [moodChartData, setMoodChartData] = useState<ChartPoint[]>([]);
   const [cravingChartData, setCravingChartData] = useState<ChartPoint[]>([]);
+  const [energyChartData, setEnergyChartData] = useState<ChartPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -47,14 +50,14 @@ export default function StatisticsPage() {
   }, []);
 
   const buildChartData = (allCheckIns: CheckInEntry[], userStats: UserStat[]) => {
-    const byDate: Record<string, Record<string, { mood: number; craving: number }>> = {};
+    const byDate: Record<string, Record<string, { mood: number; craving: number; energy: number }>> = {};
 
     allCheckIns.forEach((c) => {
       const d = new Date(c.createdAt);
       const dateKey = `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
       if (!byDate[dateKey]) byDate[dateKey] = {};
       if (c.username) {
-        byDate[dateKey][c.username] = { mood: c.mood, craving: c.craving };
+        byDate[dateKey][c.username] = { mood: c.mood, craving: c.craving, energy: c.energy };
       }
     });
 
@@ -68,22 +71,25 @@ export default function StatisticsPage() {
 
     const moodPoints: ChartPoint[] = sortedDates.map((date) => {
       const point: ChartPoint = { date };
-      usernames.forEach((name) => {
-        point[name] = byDate[date]?.[name]?.mood;
-      });
+      usernames.forEach((name) => { point[name] = byDate[date]?.[name]?.mood; });
       return point;
     });
 
     const cravingPoints: ChartPoint[] = sortedDates.map((date) => {
       const point: ChartPoint = { date };
-      usernames.forEach((name) => {
-        point[name] = byDate[date]?.[name]?.craving;
-      });
+      usernames.forEach((name) => { point[name] = byDate[date]?.[name]?.craving; });
+      return point;
+    });
+
+    const energyPoints: ChartPoint[] = sortedDates.map((date) => {
+      const point: ChartPoint = { date };
+      usernames.forEach((name) => { point[name] = byDate[date]?.[name]?.energy; });
       return point;
     });
 
     setMoodChartData(moodPoints);
     setCravingChartData(cravingPoints);
+    setEnergyChartData(energyPoints);
   };
 
   const fetchStats = async (p: number) => {
@@ -136,6 +142,11 @@ export default function StatisticsPage() {
     return labels[val] || "";
   };
 
+  const energyLabel = (val: number) => {
+    const labels: Record<number, string> = { 1: "Nėra jėgų", 2: "Silpna", 3: "Vidutinė", 4: "Gera", 5: "Skraidau" };
+    return labels[val] || "";
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -145,6 +156,38 @@ export default function StatisticsPage() {
   }
 
   const usernames = stats.map((s) => s.username);
+
+  const renderChart = (data: ChartPoint[], title: string, testId: string) => {
+    if (data.length === 0) return null;
+    return (
+      <Card data-testid={testId}>
+        <CardHeader className="pb-1">
+          <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <ResponsiveContainer width="100%" height={180}>
+            <LineChart data={data}>
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+              <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 11 }} width={25} />
+              <Tooltip />
+              <Legend iconSize={10} wrapperStyle={{ fontSize: 12 }} />
+              {usernames.map((name, i) => (
+                <Line
+                  key={name}
+                  type="monotone"
+                  dataKey={name}
+                  stroke={USER_COLORS[i % USER_COLORS.length]}
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  connectNulls
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50" data-testid="statistics-page">
@@ -161,63 +204,9 @@ export default function StatisticsPage() {
       </div>
 
       <div className="p-4 space-y-4 max-w-lg mx-auto">
-        {moodChartData.length > 0 && (
-          <Card data-testid="chart-mood">
-            <CardHeader className="pb-1">
-              <CardTitle className="text-sm font-medium text-gray-600">Nuotaika pagal dienas</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ResponsiveContainer width="100%" height={180}>
-                <LineChart data={moodChartData}>
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                  <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 11 }} width={25} />
-                  <Tooltip />
-                  <Legend iconSize={10} wrapperStyle={{ fontSize: 12 }} />
-                  {usernames.map((name, i) => (
-                    <Line
-                      key={name}
-                      type="monotone"
-                      dataKey={name}
-                      stroke={USER_COLORS[i % USER_COLORS.length]}
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                      connectNulls
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
-
-        {cravingChartData.length > 0 && (
-          <Card data-testid="chart-craving">
-            <CardHeader className="pb-1">
-              <CardTitle className="text-sm font-medium text-gray-600">Potraukis pagal dienas</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ResponsiveContainer width="100%" height={180}>
-                <LineChart data={cravingChartData}>
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                  <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 11 }} width={25} />
-                  <Tooltip />
-                  <Legend iconSize={10} wrapperStyle={{ fontSize: 12 }} />
-                  {usernames.map((name, i) => (
-                    <Line
-                      key={name}
-                      type="monotone"
-                      dataKey={name}
-                      stroke={USER_COLORS[i % USER_COLORS.length]}
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                      connectNulls
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
+        {renderChart(moodChartData, "Nuotaika pagal dienas", "chart-mood")}
+        {renderChart(cravingChartData, "Potraukis pagal dienas", "chart-craving")}
+        {renderChart(energyChartData, "Energija pagal dienas", "chart-energy")}
 
         <Card data-testid="stats-summary">
           <CardHeader className="pb-2">
@@ -231,6 +220,7 @@ export default function StatisticsPage() {
                   <div className="text-xs text-gray-500">Įrašai: {s.totalCheckins}</div>
                   <div className="text-xs text-gray-500">Vid. nuotaika: {s.avgMood || "—"}</div>
                   <div className="text-xs text-gray-500">Vid. potraukis: {s.avgCraving || "—"}</div>
+                  <div className="text-xs text-gray-500">Vid. energija: {s.avgEnergy || "—"}</div>
                 </div>
               ))}
             </div>
@@ -256,13 +246,10 @@ export default function StatisticsPage() {
                       <span className="font-medium text-xs">{c.username}</span>
                       <span className="text-gray-400 text-xs">{dateStr}</span>
                     </div>
-                    <div className="flex gap-4">
-                      <span>
-                        {moodEmoji(c.mood)} {c.mood}/5 ({moodLabel(c.mood)})
-                      </span>
-                      <span>
-                        🍬 {c.craving}/5 ({cravingLabel(c.craving)})
-                      </span>
+                    <div className="flex flex-wrap gap-3">
+                      <span>{moodEmoji(c.mood)} {c.mood}/5 ({moodLabel(c.mood)})</span>
+                      <span>🍬 {c.craving}/5 ({cravingLabel(c.craving)})</span>
+                      <span>⚡ {c.energy}/5 ({energyLabel(c.energy)})</span>
                     </div>
                     {c.note && (
                       <div className="text-gray-500 mt-1 italic text-xs">„{c.note}"</div>
