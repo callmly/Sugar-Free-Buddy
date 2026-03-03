@@ -14,6 +14,7 @@ async function initDatabase() {
       user_id VARCHAR REFERENCES users(id),
       content TEXT NOT NULL,
       is_coach BOOLEAN DEFAULT false NOT NULL,
+      reply_to_id VARCHAR,
       created_at TIMESTAMP DEFAULT NOW() NOT NULL
     );
 
@@ -56,6 +57,8 @@ async function initDatabase() {
         `);
         console.log("✅ Default admin settings created (registration enabled)");
       }
+
+      await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS reply_to_id VARCHAR`);
 
       console.log("✅ Database initialized successfully");
     } catch (error) {

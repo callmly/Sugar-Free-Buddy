@@ -192,6 +192,7 @@ app.get("/api/messages", requireAuth, async (req, res) => {
           userId: messages.userId,
           content: messages.content,
           isCoach: messages.isCoach,
+          replyToId: messages.replyToId,
           createdAt: messages.createdAt,
           username: users.username,
         })
@@ -199,7 +200,29 @@ app.get("/api/messages", requireAuth, async (req, res) => {
         .leftJoin(users, eq(messages.userId, users.id))
         .orderBy(desc(messages.createdAt))
         .limit(100);
-      res.json(allMessages.reverse());
+
+      const reversed = allMessages.reverse();
+
+      const replyIds = reversed.filter((m) => m.replyToId).map((m) => m.replyToId!);
+      let replyMap = new Map<string, { id: string; content: string; username: string | null; isCoach: boolean }>();
+
+      if (replyIds.length > 0) {
+        const replyMessages = await db
+          .select({ id: messages.id, content: messages.content, isCoach: messages.isCoach, username: users.username })
+          .from(messages)
+          .leftJoin(users, eq(messages.userId, users.id))
+          .where(sql`${messages.id} IN (${sql.join(replyIds.map(id => sql`${id}`), sql`, `)})`);
+        for (const r of replyMessages) {
+          replyMap.set(r.id, r);
+        }
+      }
+
+      const messagesWithReply = reversed.map((msg) => ({
+        ...msg,
+        replyTo: msg.replyToId ? replyMap.get(msg.replyToId) || null : null,
+      }));
+
+      res.json(messagesWithReply);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch messages" });
     }
@@ -207,16 +230,31 @@ app.get("/api/messages", requireAuth, async (req, res) => {
 
 app.post("/api/messages", requireAuth, async (req, res) => {
     try {
-      const { content } = req.body;
+      const { content, replyToId } = req.body;
       
       const [message] = await db.insert(messages).values({
         userId: req.session.userId,
         content,
         isCoach: false,
+        replyToId: replyToId || null,
       }).returning();
 
       const [sender] = await db.select().from(users).where(eq(users.id, req.session.userId!));
-      const messageWithUser = { ...message, username: sender?.username || null };
+
+      let replyTo = null;
+      if (replyToId) {
+        const [replyMsg] = await db
+          .select({ id: messages.id, content: messages.content, isCoach: messages.isCoach, username: users.username })
+          .from(messages)
+          .leftJoin(users, eq(messages.userId, users.id))
+          .where(eq(messages.id, replyToId))
+          .limit(1);
+        if (replyMsg) {
+          replyTo = replyMsg;
+        }
+      }
+
+      const messageWithUser = { ...message, username: sender?.username || null, replyTo };
 
       res.json(messageWithUser);
 

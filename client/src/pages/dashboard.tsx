@@ -6,13 +6,22 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Menu, X, Send, Home, SmilePlus, BarChart3, LogOut } from "lucide-react";
+import { Menu, X, Send, Home, SmilePlus, BarChart3, LogOut, Reply, XCircle } from "lucide-react";
+
+type ReplyTo = {
+  id: string;
+  content: string;
+  username: string | null;
+  isCoach: boolean;
+};
 
 type Message = {
   id: string;
   userId: string | null;
   content: string;
   isCoach: boolean;
+  replyToId: string | null;
+  replyTo: ReplyTo | null;
   createdAt: string;
   username: string | null;
 };
@@ -36,6 +45,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
   const [mood, setMood] = useState<number | null>(null);
   const [craving, setCraving] = useState<number | null>(null);
@@ -150,11 +160,12 @@ export default function DashboardPage() {
       const res = await fetch("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: newMessage }),
+        body: JSON.stringify({ content: newMessage, replyToId: replyingTo?.id || null }),
       });
       if (!res.ok) throw new Error("Failed to send message");
       const message = await res.json();
       setNewMessage("");
+      setReplyingTo(null);
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify({ type: "new_message", message }));
       }
@@ -319,12 +330,24 @@ export default function DashboardPage() {
             const min = String(d.getMinutes()).padStart(2, "0");
             const timestamp = `${mm}.${dd} / ${hh}:${min}`;
 
+            const replyAuthor = msg.replyTo?.isCoach ? "Treneris" : msg.replyTo?.username || "Partneris";
+            const replyPreview = msg.replyTo?.content ? (msg.replyTo.content.length > 60 ? msg.replyTo.content.slice(0, 60) + "..." : msg.replyTo.content) : null;
+
             return (
               <div
                 key={msg.id}
                 data-testid={`message-${msg.id}`}
-                className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
+                className={`group flex ${isOwn ? "justify-end" : "justify-start"}`}
               >
+                {isOwn && (
+                  <button
+                    onClick={() => setReplyingTo(msg)}
+                    className="self-center mr-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-200"
+                    data-testid={`button-reply-${msg.id}`}
+                  >
+                    <Reply className="h-4 w-4 text-gray-400" />
+                  </button>
+                )}
                 <div
                   className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
                     isCoach
@@ -334,6 +357,18 @@ export default function DashboardPage() {
                         : "bg-white border border-gray-200 text-gray-900"
                   }`}
                 >
+                  {msg.replyTo && (
+                    <div
+                      className={`text-xs rounded-lg px-2.5 py-1.5 mb-2 border-l-2 ${
+                        isOwn && !isCoach
+                          ? "bg-blue-400/30 border-blue-200 text-blue-100"
+                          : "bg-gray-100 border-gray-300 text-gray-500"
+                      }`}
+                    >
+                      <span className="font-semibold">{replyAuthor}</span>
+                      <div className="truncate">{replyPreview}</div>
+                    </div>
+                  )}
                   {isCoach && (
                     <div className="text-xs font-semibold mb-1">🤖 Treneris</div>
                   )}
@@ -351,6 +386,15 @@ export default function DashboardPage() {
                     {timestamp}
                   </div>
                 </div>
+                {!isOwn && (
+                  <button
+                    onClick={() => setReplyingTo(msg)}
+                    className="self-center ml-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-200"
+                    data-testid={`button-reply-${msg.id}`}
+                  >
+                    <Reply className="h-4 w-4 text-gray-400" />
+                  </button>
+                )}
               </div>
             );
           })}
@@ -359,6 +403,26 @@ export default function DashboardPage() {
       </div>
 
       <div className="sticky bottom-0 bg-white border-t border-gray-200 px-3 py-3 shrink-0">
+        {replyingTo && (
+          <div className="flex items-center gap-2 max-w-2xl mx-auto mb-2 bg-gray-50 rounded-lg px-3 py-2 border-l-3 border-blue-500" data-testid="reply-preview">
+            <Reply className="h-4 w-4 text-blue-500 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-semibold text-blue-600">
+                {replyingTo.isCoach ? "Treneris" : replyingTo.username || "Partneris"}
+              </div>
+              <div className="text-xs text-gray-500 truncate">
+                {replyingTo.content.length > 80 ? replyingTo.content.slice(0, 80) + "..." : replyingTo.content}
+              </div>
+            </div>
+            <button
+              onClick={() => setReplyingTo(null)}
+              className="shrink-0 p-0.5 rounded-full hover:bg-gray-200"
+              data-testid="button-cancel-reply"
+            >
+              <XCircle className="h-4 w-4 text-gray-400" />
+            </button>
+          </div>
+        )}
         <form
           onSubmit={sendMessage}
           className="flex gap-2 max-w-2xl mx-auto"

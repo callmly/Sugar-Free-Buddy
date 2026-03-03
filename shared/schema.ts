@@ -25,6 +25,7 @@ id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
 userId: varchar("user_id").references(() => users.id),
 content: text("content").notNull(),
 isCoach: boolean("is_coach").default(false).notNull(),
+replyToId: varchar("reply_to_id"),
 createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -32,6 +33,7 @@ export const insertMessageSchema = createInsertSchema(messages).pick({
 userId: true,
 content: true,
 isCoach: true,
+replyToId: true,
 });
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
