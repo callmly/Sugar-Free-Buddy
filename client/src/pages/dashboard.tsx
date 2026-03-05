@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Menu, X, Send, Home, SmilePlus, BarChart3, LogOut, Reply, XCircle } from "lucide-react";
+import { Menu, X, Send, Home, SmilePlus, BarChart3, LogOut, Reply, XCircle, Trophy } from "lucide-react";
 
 type ReplyTo = {
   id: string;
@@ -46,6 +46,7 @@ export default function DashboardPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [betOpen, setBetOpen] = useState(false);
 
   const [mood, setMood] = useState<number | null>(null);
   const [craving, setCraving] = useState<number | null>(null);
@@ -229,6 +230,26 @@ export default function DashboardPage() {
     setIsEditing(false);
   };
 
+  const surrender = async () => {
+    try {
+      const surrenderText = `🚨 ${user?.username} pasidavė :)`;
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: surrenderText }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      const message = await res.json();
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: "new_message", message }));
+      }
+      setBetOpen(false);
+      toast({ title: "Lažybos", description: "Pranešimas išsiųstas į chat'ą" });
+    } catch {
+      toast({ title: "Klaida", description: "Nepavyko išsiųsti pranešimo", variant: "destructive" });
+    }
+  };
+
   const logout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
@@ -307,6 +328,14 @@ export default function DashboardPage() {
               <span className="font-medium">Statistika</span>
             </button>
             <button
+              className="flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100"
+              onClick={() => { setMenuOpen(false); setBetOpen(true); }}
+              data-testid="menu-bet"
+            >
+              <Trophy className="h-5 w-5 text-gray-500" />
+              <span className="font-medium">Lažybos</span>
+            </button>
+            <button
               className="flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 active:bg-gray-100 text-red-600"
               onClick={() => { setMenuOpen(false); logout(); }}
               data-testid="menu-logout"
@@ -323,12 +352,24 @@ export default function DashboardPage() {
           {messages.map((msg) => {
             const isOwn = msg.userId === user?.id;
             const isCoach = msg.isCoach;
+            const isSurrender = msg.content.includes("pasidavė :)");
             const d = new Date(msg.createdAt);
             const mm = String(d.getMonth() + 1).padStart(2, "0");
             const dd = String(d.getDate()).padStart(2, "0");
             const hh = String(d.getHours()).padStart(2, "0");
             const min = String(d.getMinutes()).padStart(2, "0");
             const timestamp = `${mm}.${dd} / ${hh}:${min}`;
+
+            if (isSurrender) {
+              return (
+                <div key={msg.id} data-testid={`message-${msg.id}`} className="flex justify-center my-2">
+                  <div className="bg-red-100 border-2 border-red-300 rounded-2xl px-6 py-3 text-center shadow-sm">
+                    <div className="text-red-700 font-bold text-base">{msg.content}</div>
+                    <div className="text-[11px] text-red-400 mt-1">{timestamp}</div>
+                  </div>
+                </div>
+              );
+            }
 
             const replyAuthor = msg.replyTo?.isCoach ? "Treneris" : msg.replyTo?.username || "Partneris";
             const replyPreview = msg.replyTo?.content ? (msg.replyTo.content.length > 60 ? msg.replyTo.content.slice(0, 60) + "..." : msg.replyTo.content) : null;
@@ -574,6 +615,32 @@ export default function DashboardPage() {
             </Button>
           </form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={betOpen} onOpenChange={setBetOpen}>
+        <DialogContent className="max-w-sm !bg-white dark:!bg-gray-900 !border-2 !border-gray-300 dark:!border-gray-600 shadow-2xl z-[100]">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2" data-testid="dialog-title-bet">
+              <Trophy className="h-5 w-5 text-amber-500" />
+              Lažybos
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <p className="font-semibold text-red-800 text-base mb-2">Nebegaliu be cukraus :)</p>
+              <p className="text-sm text-red-600 leading-relaxed">
+                Pažymiu, kad arba jau prisivalgiau, arba planuoju prisivalgyti saldumynų. Suprantu, kad pralaimėjau lažybas ir savo draugą vaišinu pietumis arba vakariene gerame restorane.
+              </p>
+            </div>
+            <Button
+              onClick={surrender}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3"
+              data-testid="button-surrender"
+            >
+              Pasiduodu
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
