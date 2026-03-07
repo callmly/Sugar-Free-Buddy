@@ -47,6 +47,7 @@ export default function DashboardPage() {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [betOpen, setBetOpen] = useState(false);
+  const [betConfirmed, setBetConfirmed] = useState(false);
 
   const [mood, setMood] = useState<number | null>(null);
   const [craving, setCraving] = useState<number | null>(null);
@@ -613,7 +614,7 @@ export default function DashboardPage() {
           )}
         </DialogContent>
       </Dialog>
-      <Dialog open={betOpen} onOpenChange={setBetOpen}>
+      <Dialog open={betOpen} onOpenChange={(open) => { setBetOpen(open); if (!open) setBetConfirmed(false); }}>
         <DialogContent className="max-w-sm !bg-white dark:!bg-gray-900 !border-2 !border-gray-300 dark:!border-gray-600 shadow-2xl z-[100]">
           <DialogHeader>
             <DialogTitle className="text-xl flex items-center gap-2" data-testid="dialog-title-bet">
@@ -623,12 +624,24 @@ export default function DashboardPage() {
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <p className="font-semibold text-red-800 text-base mb-2">Nebegaliu be cukraus :)</p>
-              <p className="text-sm text-red-600 leading-relaxed">Pažymiu, kad arba jau prisivalgiau, arba planuoju prisivalgyti saldumynų. Suprantu, kad pralaimėjau lažybas ir savo draugą vaišinsiu pietumis arba vakariene. Pasirūpinsiu, kad draugas būtų sotus ir laimingas.  </p>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={betConfirmed}
+                  onChange={(e) => setBetConfirmed(e.target.checked)}
+                  className="mt-1 h-5 w-5 accent-red-600 shrink-0"
+                  data-testid="checkbox-surrender"
+                />
+                <div>
+                  <span className="font-semibold text-red-800 text-base">Nebegaliu be cukraus :)</span>
+                  <p className="text-sm text-red-600 leading-relaxed mt-1">Pažymiu, kad arba jau prisivalgiau, arba planuoju prisivalgyti saldumynų. Suprantu, kad pralaimėjau lažybas ir savo draugą vaišinsiu pietumis arba vakariene. Pasirūpinsiu, kad draugas būtų sotus ir laimingas.</p>
+                </div>
+              </label>
             </div>
             <Button
               onClick={surrender}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3"
+              disabled={!betConfirmed}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="button-surrender"
             >
               Pasiduodu
