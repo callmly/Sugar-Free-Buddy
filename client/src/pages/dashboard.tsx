@@ -634,7 +634,7 @@ export default function DashboardPage() {
                 />
                 <div>
                   <span className="font-semibold text-red-800 text-base">Nebegaliu be cukraus - pasiduodu</span>
-                  <p className="text-sm text-red-600 leading-relaxed mt-1">Pažymiu, kad arba jau prisivalgiau, arba planuoju prisivalgyti saldumynų. Suprantu, kad pralaimėjau lažybas ir savo draugą vaišinsiu pietumis arba vakariene. Pasirūpinsiu, kad draugas būtų sotus ir laimingas.</p>
+                  <p className="text-sm text-red-600 leading-relaxed mt-1">Pažymiu, kad arba jau prisivalgiau, arba planuoju prisivalgyti saldumynų. Suprantu, kad pralaimėjau lažybas ir savo draugą vaišinsiu pietumis arba vakariene. Pasirūpinsiu, kad draugas būtų sotus ir laimingas :)</p>
                 </div>
               </label>
             </div>
