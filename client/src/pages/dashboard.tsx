@@ -299,7 +299,6 @@ export default function DashboardPage() {
           {menuOpen ? <X className="h-6 w-6 text-white" /> : <Menu className="h-6 w-6 text-white" />}
         </Button>
       </header>
-
       {menuOpen && (
         <div className="absolute top-[57px] right-0 left-0 z-40 bg-white border-b border-gray-200 shadow-lg" data-testid="menu-dropdown">
           <nav className="flex flex-col">
@@ -346,7 +345,6 @@ export default function DashboardPage() {
           </nav>
         </div>
       )}
-
       <div className="flex-1 overflow-y-auto px-3 py-3" data-testid="chat-area">
         <div className="space-y-2 max-w-2xl mx-auto">
           {messages.map((msg) => {
@@ -442,7 +440,6 @@ export default function DashboardPage() {
           <div ref={messagesEndRef} />
         </div>
       </div>
-
       <div className="sticky bottom-0 bg-white border-t border-gray-200 px-3 py-3 shrink-0">
         {replyingTo && (
           <div className="flex items-center gap-2 max-w-2xl mx-auto mb-2 bg-gray-50 rounded-lg px-3 py-2 border-l-3 border-blue-500" data-testid="reply-preview">
@@ -481,7 +478,6 @@ export default function DashboardPage() {
           </Button>
         </form>
       </div>
-
       <Dialog open={checkInOpen} onOpenChange={(open) => {
         setCheckInOpen(open);
         if (!open) resetCheckInForm();
@@ -617,7 +613,6 @@ export default function DashboardPage() {
           )}
         </DialogContent>
       </Dialog>
-
       <Dialog open={betOpen} onOpenChange={setBetOpen}>
         <DialogContent className="max-w-sm !bg-white dark:!bg-gray-900 !border-2 !border-gray-300 dark:!border-gray-600 shadow-2xl z-[100]">
           <DialogHeader>
@@ -629,9 +624,7 @@ export default function DashboardPage() {
           <div className="space-y-4 pt-2">
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
               <p className="font-semibold text-red-800 text-base mb-2">Nebegaliu be cukraus :)</p>
-              <p className="text-sm text-red-600 leading-relaxed">
-                Pažymiu, kad arba jau prisivalgiau, arba planuoju prisivalgyti saldumynų. Suprantu, kad pralaimėjau lažybas ir savo draugą vaišinu pietumis arba vakariene gerame restorane.
-              </p>
+              <p className="text-sm text-red-600 leading-relaxed">Pažymiu, kad arba jau prisivalgiau, arba planuoju prisivalgyti saldumynų. Suprantu, kad pralaimėjau lažybas ir savo draugą vaišinsiu pietumis arba vakariene. Pasirūpinsiu, kad draugas būtų sotus ir laimingas.  </p>
             </div>
             <Button
               onClick={surrender}
