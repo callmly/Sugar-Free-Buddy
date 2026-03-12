@@ -97,7 +97,7 @@ export default function LoginPage() {
               <Input
                 id="nc_pin_field"
                 name="nc_pin_field"
-                type="tel"
+                type="password"
                 inputMode="numeric"
                 pattern="\d{4,6}"
                 maxLength={6}
