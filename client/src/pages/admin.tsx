@@ -51,7 +51,13 @@ export default function AdminPage() {
       setCustomInstructions(data.customInstructions || "");
       setChatInstructions(data.chatInstructions || "");
       setAllowRegistration(data.allowRegistration !== false);
-      setRelapseTime(data.relapseTime ? new Date(data.relapseTime).toISOString().slice(0, 16) : "");
+      if (data.relapseTime) {
+        const d = new Date(data.relapseTime);
+        const localStr = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        setRelapseTime(localStr);
+      } else {
+        setRelapseTime("");
+      }
     } catch {
       toast({ title: "Klaida", description: "Nepavyko užkrauti nustatymų", variant: "destructive" });
     } finally {
