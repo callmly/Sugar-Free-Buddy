@@ -609,8 +609,7 @@ app.get("/api/checkins/mine", requireAuth, async (req, res) => {
         .select()
         .from(checkIns)
         .where(eq(checkIns.userId, req.session.userId!))
-        .orderBy(desc(checkIns.createdAt))
-        .limit(30);
+        .orderBy(desc(checkIns.createdAt));
       res.json(myCheckIns);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch check-ins" });
