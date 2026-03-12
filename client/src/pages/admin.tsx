@@ -22,7 +22,7 @@ export default function AdminPage() {
   const [openaiApiKey, setOpenaiApiKey] = useState("");
   const [openaiModel, setOpenaiModel] = useState("gpt-4o-mini");
   const [anthropicApiKey, setAnthropicApiKey] = useState("");
-  const [anthropicModel, setAnthropicModel] = useState("claude-3-5-sonnet-20241022");
+  const [anthropicModel, setAnthropicModel] = useState("claude-3-haiku-20240307");
   const [aiProvider, setAiProvider] = useState("openai");
   const [customInstructions, setCustomInstructions] = useState("");
   const [chatInstructions, setChatInstructions] = useState("");
@@ -200,11 +200,24 @@ export default function AdminPage() {
                 onChange={(e) => setAnthropicModel(e.target.value)}
                 className="w-full text-[17px] text-[#1C1C1E] outline-none bg-transparent appearance-none"
               >
-                <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
-                <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</option>
-                <option value="claude-3-opus-20240229">Claude 3 Opus</option>
-                <option value="claude-3-sonnet-20240229">Claude 3 Sonnet</option>
-                <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+                <optgroup label="Claude 4 (naujausias)">
+                  <option value="claude-opus-4-5">Claude Opus 4.5</option>
+                  <option value="claude-sonnet-4-5">Claude Sonnet 4.5</option>
+                  <option value="claude-haiku-4-5">Claude Haiku 4.5</option>
+                </optgroup>
+                <optgroup label="Claude 3.7">
+                  <option value="claude-3-7-sonnet-20250219">Claude 3.7 Sonnet</option>
+                </optgroup>
+                <optgroup label="Claude 3.5">
+                  <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Oct 2024)</option>
+                  <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet (Jun 2024)</option>
+                  <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</option>
+                </optgroup>
+                <optgroup label="Claude 3">
+                  <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+                  <option value="claude-3-sonnet-20240229">Claude 3 Sonnet</option>
+                  <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+                </optgroup>
               </select>
             </div>
           </div>

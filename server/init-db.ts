@@ -60,7 +60,7 @@ async function initDatabase() {
 
       await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS reply_to_id VARCHAR`);
       await pool.query(`ALTER TABLE admin_settings ADD COLUMN IF NOT EXISTS anthropic_api_key TEXT`);
-      await pool.query(`ALTER TABLE admin_settings ADD COLUMN IF NOT EXISTS anthropic_model TEXT DEFAULT 'claude-3-5-sonnet-20241022'`);
+      await pool.query(`ALTER TABLE admin_settings ADD COLUMN IF NOT EXISTS anthropic_model TEXT DEFAULT 'claude-3-haiku-20240307'`);
       await pool.query(`ALTER TABLE admin_settings ADD COLUMN IF NOT EXISTS ai_provider TEXT DEFAULT 'openai'`);
 
       console.log("✅ Database initialized successfully");
