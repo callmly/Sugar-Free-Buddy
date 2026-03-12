@@ -47,47 +47,38 @@ export default function StatisticsPage() {
     fetchStats(0);
   }, []);
 
-  const buildChartData = (rawChartData: any[], userStats: UserStat[]) => {
+  const buildChartData = (rawCheckIns: any[], userStats: UserStat[]) => {
     const userNames = userStats.map((s) => s.username);
-    const dateMap: Record<string, ChartPoint> = {};
+    const moodMap: Record<string, ChartPoint> = {};
+    const cravingMap: Record<string, ChartPoint> = {};
+    const energyMap: Record<string, ChartPoint> = {};
 
-    rawChartData.forEach((row: any) => {
-      const d = new Date(row.date);
-      const dateKey = `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-      if (!dateMap[dateKey]) dateMap[dateKey] = { date: dateKey };
-      if (userNames.includes(row.username)) {
-        dateMap[dateKey][`${row.username}_mood`] = Number(row.avgMood);
-        dateMap[dateKey][`${row.username}_craving`] = Number(row.avgCraving);
-        dateMap[dateKey][`${row.username}_energy`] = Number(row.avgEnergy);
-      }
+    rawCheckIns.forEach((row: any) => {
+      const d = new Date(row.createdAt);
+      const dateKey = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const name = row.username;
+      if (!name || !userNames.includes(name)) return;
+
+      if (!moodMap[dateKey]) moodMap[dateKey] = { date: dateKey };
+      if (!cravingMap[dateKey]) cravingMap[dateKey] = { date: dateKey };
+      if (!energyMap[dateKey]) energyMap[dateKey] = { date: dateKey };
+
+      moodMap[dateKey][name] = row.mood;
+      cravingMap[dateKey][name] = row.craving;
+      energyMap[dateKey][name] = row.energy;
     });
 
-    const sorted = Object.values(dateMap).sort((a, b) => a.date.localeCompare(b.date));
+    const sort = (map: Record<string, ChartPoint>) =>
+      Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
 
-    const moodData = sorted.map((p) => {
-      const point: ChartPoint = { date: p.date };
-      userNames.forEach((name) => { if (p[`${name}_mood`] !== undefined) point[name] = p[`${name}_mood`] as number; });
-      return point;
-    });
-    const cravingData = sorted.map((p) => {
-      const point: ChartPoint = { date: p.date };
-      userNames.forEach((name) => { if (p[`${name}_craving`] !== undefined) point[name] = p[`${name}_craving`] as number; });
-      return point;
-    });
-    const energyData = sorted.map((p) => {
-      const point: ChartPoint = { date: p.date };
-      userNames.forEach((name) => { if (p[`${name}_energy`] !== undefined) point[name] = p[`${name}_energy`] as number; });
-      return point;
-    });
-
-    setMoodChartData(moodData);
-    setCravingChartData(cravingData);
-    setEnergyChartData(energyData);
+    setMoodChartData(sort(moodMap));
+    setCravingChartData(sort(cravingMap));
+    setEnergyChartData(sort(energyMap));
   };
 
   const fetchStats = async (p: number) => {
     try {
-      const res = await fetch(`/api/statistics?page=${p}&limit=20`);
+      const res = await fetch(`/api/stats?page=${p}&limit=20`);
       if (res.status === 401 || res.status === 403) {
         setLocation("/login");
         return;
