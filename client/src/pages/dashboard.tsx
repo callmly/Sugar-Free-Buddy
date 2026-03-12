@@ -501,7 +501,7 @@ export default function DashboardPage() {
             <input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="iMessage..."
+              placeholder="Žinutė..."
               className="w-full text-[15px] text-[#1C1C1E] placeholder-[#C7C7CC] outline-none bg-transparent"
               data-testid="input-message"
             />
