@@ -567,7 +567,7 @@ Parašyk palaikantį atsakymą lietuviškai (3-6 sakiniais). Palygink su ankstes
 app.put("/api/checkins/:id", requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      const { mood, craving, energy, note } = req.body;
+      const { mood, craving, energy, note, createdAt } = req.body;
 
       const moodVal = parseInt(mood);
       const cravingVal = parseInt(craving);
@@ -582,15 +582,17 @@ app.put("/api/checkins/:id", requireAuth, async (req, res) => {
         return res.status(403).json({ error: "Negalite redaguoti šio įrašo" });
       }
 
-      const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      if (new Date(existing.createdAt) < startOfDay) {
-        return res.status(400).json({ error: "Galima redaguoti tik šiandienos įrašą" });
+      const updateData: any = { mood: moodVal, craving: cravingVal, energy: energyVal, note: note || null };
+      if (createdAt) {
+        const parsedDate = new Date(createdAt);
+        if (!isNaN(parsedDate.getTime())) {
+          updateData.createdAt = parsedDate;
+        }
       }
 
       const [updated] = await db
         .update(checkIns)
-        .set({ mood: moodVal, craving: cravingVal, energy: energyVal, note: note || null })
+        .set(updateData)
         .where(eq(checkIns.id, id))
         .returning();
 
@@ -598,6 +600,20 @@ app.put("/api/checkins/:id", requireAuth, async (req, res) => {
     } catch (error) {
       console.error("Check-in update error:", error);
       res.status(500).json({ error: "Failed to update check-in" });
+    }
+});
+
+app.get("/api/checkins/mine", requireAuth, async (req, res) => {
+    try {
+      const myCheckIns = await db
+        .select()
+        .from(checkIns)
+        .where(eq(checkIns.userId, req.session.userId!))
+        .orderBy(desc(checkIns.createdAt))
+        .limit(30);
+      res.json(myCheckIns);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch check-ins" });
     }
 });
 

@@ -53,10 +53,14 @@ export default function DashboardPage() {
   const [craving, setCraving] = useState<number | null>(null);
   const [energy, setEnergy] = useState<number | null>(null);
   const [note, setNote] = useState<string>("");
+  const [editDate, setEditDate] = useState<string>("");
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [submittingCheckIn, setSubmittingCheckIn] = useState(false);
   const [todayCheckIn, setTodayCheckIn] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [editingCheckIn, setEditingCheckIn] = useState<any>(null);
+  const [historyView, setHistoryView] = useState(false);
+  const [myCheckIns, setMyCheckIns] = useState<any[]>([]);
 
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -149,10 +153,30 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchMyCheckIns = async () => {
+    try {
+      const res = await fetch("/api/checkins/mine");
+      if (res.ok) setMyCheckIns(await res.json());
+    } catch {}
+  };
+
   const openCheckInDialog = () => {
-    fetchTodayCheckIn().then(() => {
-      setCheckInOpen(true);
-    });
+    fetchTodayCheckIn();
+    fetchMyCheckIns();
+    setHistoryView(false);
+    setCheckInOpen(true);
+  };
+
+  const startEditingCheckIn = (ci: any) => {
+    setEditingCheckIn(ci);
+    setIsEditing(true);
+    setMood(ci.mood);
+    setCraving(ci.craving);
+    setEnergy(ci.energy);
+    setNote(ci.note || "");
+    const d = new Date(ci.createdAt);
+    setEditDate(d.toISOString().slice(0, 10));
+    setHistoryView(false);
   };
 
   const sendMessage = async (e: React.FormEvent) => {
@@ -184,11 +208,13 @@ export default function DashboardPage() {
     }
     setSubmittingCheckIn(true);
     try {
-      if (isEditing && todayCheckIn) {
-        const res = await fetch(`/api/checkins/${todayCheckIn.id}`, {
+      if (isEditing && editingCheckIn) {
+        const body: any = { mood, craving, energy, note };
+        if (editDate) body.createdAt = new Date(editDate).toISOString();
+        const res = await fetch(`/api/checkins/${editingCheckIn.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mood, craving, energy, note }),
+          body: JSON.stringify(body),
         });
         if (!res.ok) {
           const data = await res.json();
@@ -227,8 +253,11 @@ export default function DashboardPage() {
     setCraving(null);
     setEnergy(null);
     setNote("");
+    setEditDate("");
     setTodayCheckIn(null);
     setIsEditing(false);
+    setEditingCheckIn(null);
+    setHistoryView(false);
   };
 
   const surrender = async () => {
@@ -485,14 +514,64 @@ export default function DashboardPage() {
       }}>
         <DialogContent className="max-w-sm !bg-white dark:!bg-gray-900 !border-2 !border-gray-300 dark:!border-gray-600 shadow-2xl z-[100]">
           <DialogHeader>
-            <DialogTitle className="text-xl">Dienos savijauta</DialogTitle>
-            <DialogDescription>
-              {todayCheckIn && !isEditing
-                ? "Šiandien jau pateikėte savijautą"
-                : "Kaip jaučiuosi šiandien?"}
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-xl">
+                {historyView ? "Istorija" : isEditing ? "Redaguoti įrašą" : "Dienos savijauta"}
+              </DialogTitle>
+              {!isEditing && (
+                <button
+                  type="button"
+                  onClick={() => setHistoryView(!historyView)}
+                  className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+                  data-testid="button-toggle-history"
+                >
+                  {historyView ? "← Atgal" : "Istorija"}
+                </button>
+              )}
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={() => { setIsEditing(false); setEditingCheckIn(null); setMood(null); setCraving(null); setEnergy(null); setNote(""); setEditDate(""); }}
+                  className="text-xs text-gray-400 hover:text-gray-600 font-medium"
+                >
+                  ← Atgal
+                </button>
+              )}
+            </div>
+            {!historyView && !isEditing && (
+              <DialogDescription>
+                {todayCheckIn ? "Šiandien jau pateikėte savijautą" : "Kaip jaučiuosi šiandien?"}
+              </DialogDescription>
+            )}
           </DialogHeader>
-          {todayCheckIn && !isEditing ? (
+
+          {historyView ? (
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {myCheckIns.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-4">Įrašų nėra</p>
+              )}
+              {myCheckIns.map((ci) => {
+                const d = new Date(ci.createdAt);
+                const label = `${d.getDate()}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`;
+                return (
+                  <div key={ci.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2.5">
+                    <div className="text-sm">
+                      <span className="font-medium text-gray-700">{label}</span>
+                      <span className="text-gray-400 ml-2">N:{ci.mood} P:{ci.craving} E:{ci.energy}</span>
+                      {ci.note && <div className="text-xs text-gray-400 truncate max-w-[180px]">{ci.note}</div>}
+                    </div>
+                    <button
+                      onClick={() => startEditingCheckIn(ci)}
+                      className="text-xs text-blue-500 hover:text-blue-700 font-medium shrink-0 ml-2"
+                      data-testid={`button-edit-checkin-${ci.id}`}
+                    >
+                      Redaguoti
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : todayCheckIn && !isEditing ? (
             <div className="space-y-4">
               <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
                 <div>Nuotaika: <strong>{todayCheckIn.mood}/5</strong></div>
@@ -503,20 +582,26 @@ export default function DashboardPage() {
               <Button
                 className="w-full"
                 variant="outline"
-                onClick={() => {
-                  setIsEditing(true);
-                  setMood(todayCheckIn.mood);
-                  setCraving(todayCheckIn.craving);
-                  setEnergy(todayCheckIn.energy);
-                  setNote(todayCheckIn.note || "");
-                }}
+                onClick={() => startEditingCheckIn(todayCheckIn)}
                 data-testid="button-edit-checkin"
               >
-                Redaguoti
+                Redaguoti šiandienos įrašą
               </Button>
             </div>
           ) : (
           <form onSubmit={submitCheckIn} className="space-y-5">
+            {isEditing && (
+              <div className="space-y-1">
+                <Label className="text-sm font-medium">Data</Label>
+                <input
+                  type="date"
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  data-testid="input-edit-date"
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label className="text-sm font-medium">Nuotaika</Label>
               <div className="flex justify-between gap-1">
