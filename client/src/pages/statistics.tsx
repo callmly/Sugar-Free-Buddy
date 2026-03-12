@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
@@ -31,7 +29,7 @@ type ChartPoint = {
   [key: string]: number | string | undefined;
 };
 
-const USER_COLORS = ["#8b5cf6", "#f97316"];
+const USER_COLORS = ["#007AFF", "#FF9500"];
 
 export default function StatisticsPage() {
   const [, setLocation] = useLocation();
@@ -49,53 +47,48 @@ export default function StatisticsPage() {
     fetchStats(0);
   }, []);
 
-  const buildChartData = (allCheckIns: CheckInEntry[], userStats: UserStat[]) => {
-    const byDate: Record<string, Record<string, { mood: number; craving: number; energy: number }>> = {};
+  const buildChartData = (rawChartData: any[], userStats: UserStat[]) => {
+    const userNames = userStats.map((s) => s.username);
+    const dateMap: Record<string, ChartPoint> = {};
 
-    allCheckIns.forEach((c) => {
-      const d = new Date(c.createdAt);
+    rawChartData.forEach((row: any) => {
+      const d = new Date(row.date);
       const dateKey = `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-      if (!byDate[dateKey]) byDate[dateKey] = {};
-      if (c.username) {
-        byDate[dateKey][c.username] = { mood: c.mood, craving: c.craving, energy: c.energy };
+      if (!dateMap[dateKey]) dateMap[dateKey] = { date: dateKey };
+      if (userNames.includes(row.username)) {
+        dateMap[dateKey][`${row.username}_mood`] = Number(row.avgMood);
+        dateMap[dateKey][`${row.username}_craving`] = Number(row.avgCraving);
+        dateMap[dateKey][`${row.username}_energy`] = Number(row.avgEnergy);
       }
     });
 
-    const sortedDates = Object.keys(byDate).sort((a, b) => {
-      const [am, ad] = a.split(".").map(Number);
-      const [bm, bd] = b.split(".").map(Number);
-      return am !== bm ? am - bm : ad - bd;
+    const sorted = Object.values(dateMap).sort((a, b) => a.date.localeCompare(b.date));
+
+    const moodData = sorted.map((p) => {
+      const point: ChartPoint = { date: p.date };
+      userNames.forEach((name) => { if (p[`${name}_mood`] !== undefined) point[name] = p[`${name}_mood`] as number; });
+      return point;
     });
-
-    const usernames = userStats.map((u) => u.username);
-
-    const moodPoints: ChartPoint[] = sortedDates.map((date) => {
-      const point: ChartPoint = { date };
-      usernames.forEach((name) => { point[name] = byDate[date]?.[name]?.mood; });
+    const cravingData = sorted.map((p) => {
+      const point: ChartPoint = { date: p.date };
+      userNames.forEach((name) => { if (p[`${name}_craving`] !== undefined) point[name] = p[`${name}_craving`] as number; });
+      return point;
+    });
+    const energyData = sorted.map((p) => {
+      const point: ChartPoint = { date: p.date };
+      userNames.forEach((name) => { if (p[`${name}_energy`] !== undefined) point[name] = p[`${name}_energy`] as number; });
       return point;
     });
 
-    const cravingPoints: ChartPoint[] = sortedDates.map((date) => {
-      const point: ChartPoint = { date };
-      usernames.forEach((name) => { point[name] = byDate[date]?.[name]?.craving; });
-      return point;
-    });
-
-    const energyPoints: ChartPoint[] = sortedDates.map((date) => {
-      const point: ChartPoint = { date };
-      usernames.forEach((name) => { point[name] = byDate[date]?.[name]?.energy; });
-      return point;
-    });
-
-    setMoodChartData(moodPoints);
-    setCravingChartData(cravingPoints);
-    setEnergyChartData(energyPoints);
+    setMoodChartData(moodData);
+    setCravingChartData(cravingData);
+    setEnergyChartData(energyData);
   };
 
   const fetchStats = async (p: number) => {
     try {
-      const res = await fetch(`/api/stats?page=${p}`);
-      if (!res.ok) {
+      const res = await fetch(`/api/statistics?page=${p}&limit=20`);
+      if (res.status === 401 || res.status === 403) {
         setLocation("/login");
         return;
       }
@@ -103,9 +96,7 @@ export default function StatisticsPage() {
       setStats(data.stats);
       if (p === 0) {
         setEntries(data.entries);
-        if (data.chartData) {
-          buildChartData(data.chartData, data.stats);
-        }
+        if (data.chartData) buildChartData(data.chartData, data.stats);
       } else {
         setEntries((prev) => [...prev, ...data.entries]);
       }
@@ -119,10 +110,7 @@ export default function StatisticsPage() {
     }
   };
 
-  const loadMore = () => {
-    setLoadingMore(true);
-    fetchStats(page + 1);
-  };
+  const loadMore = () => { setLoadingMore(true); fetchStats(page + 1); };
 
   const moodEmoji = (val: number) => {
     if (val <= 1) return "😞";
@@ -132,149 +120,124 @@ export default function StatisticsPage() {
     return "😊";
   };
 
-  const moodLabel = (val: number) => {
-    const labels: Record<number, string> = { 1: "Bloga", 2: "Prasta", 3: "Vidutinė", 4: "Gera", 5: "Puiki" };
-    return labels[val] || "";
-  };
-
-  const cravingLabel = (val: number) => {
-    const labels: Record<number, string> = { 1: "Nenoriu", 2: "Šiek tiek", 3: "Vidutiniškai", 4: "Noriu", 5: "Labai noriu" };
-    return labels[val] || "";
-  };
-
-  const energyLabel = (val: number) => {
-    const labels: Record<number, string> = { 1: "Nėra jėgų", 2: "Silpna", 3: "Vidutinė", 4: "Gera", 5: "Skraidau" };
-    return labels[val] || "";
-  };
+  const moodLabel = (val: number) => ({ 1: "Bloga", 2: "Prasta", 3: "Vidutinė", 4: "Gera", 5: "Puiki" }[val] || "");
+  const cravingLabel = (val: number) => ({ 1: "Nenoriu", 2: "Šiek tiek", 3: "Vidutiniškai", 4: "Noriu", 5: "Labai noriu" }[val] || "");
+  const energyLabel = (val: number) => ({ 1: "Nėra jėgų", 2: "Silpna", 3: "Vidutinė", 4: "Gera", 5: "Skraidau" }[val] || "");
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-lg text-gray-500">Kraunasi...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7]">
+        <div className="text-[15px] text-[#8E8E93]">Kraunasi...</div>
       </div>
     );
   }
 
   const usernames = stats.map((s) => s.username);
 
-  const renderChart = (data: ChartPoint[], title: string, testId: string) => {
+  const renderChart = (data: ChartPoint[], title: string, color: string, testId: string) => {
     if (data.length === 0) return null;
     return (
-      <Card data-testid={testId}>
-        <CardHeader className="pb-1">
-          <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <ResponsiveContainer width="100%" height={180}>
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden" data-testid={testId}>
+        <div className="px-4 pt-4 pb-2">
+          <div className="text-[13px] font-semibold text-[#8E8E93] uppercase tracking-wider">{title}</div>
+        </div>
+        <div className="px-2 pb-3">
+          <ResponsiveContainer width="100%" height={160}>
             <LineChart data={data}>
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 11 }} width={25} />
-              <Tooltip />
-              <Legend iconSize={10} wrapperStyle={{ fontSize: 12 }} />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#8E8E93" }} axisLine={false} tickLine={false} />
+              <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 10, fill: "#8E8E93" }} width={20} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 16px rgba(0,0,0,0.12)", fontSize: 12 }} />
+              <Legend iconSize={8} wrapperStyle={{ fontSize: 11, color: "#8E8E93" }} />
               {usernames.map((name, i) => (
-                <Line
-                  key={name}
-                  type="monotone"
-                  dataKey={name}
-                  stroke={USER_COLORS[i % USER_COLORS.length]}
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                  connectNulls
-                />
+                <Line key={name} type="monotone" dataKey={name} stroke={USER_COLORS[i % USER_COLORS.length]} strokeWidth={2.5} dot={{ r: 3, fill: USER_COLORS[i % USER_COLORS.length] }} connectNulls />
               ))}
             </LineChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-50" data-testid="statistics-page">
-      <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
+    <div className="min-h-screen bg-[#F2F2F7]" data-testid="statistics-page">
+      <div className="sticky top-0 z-50 ios-header px-4 py-3 flex items-center gap-2">
+        <button
           onClick={() => setLocation("/")}
+          className="w-8 h-8 flex items-center justify-center rounded-full active:bg-[#E5E5EA] transition-colors -ml-1"
           data-testid="button-back"
         >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-lg font-semibold">Statistika</h1>
+          <ArrowLeft className="h-5 w-5 text-[#007AFF]" />
+        </button>
+        <h1 className="text-[17px] font-semibold text-[#1C1C1E]">Statistika</h1>
       </div>
 
-      <div className="p-4 space-y-4 max-w-lg mx-auto">
-        {renderChart(moodChartData, "Nuotaika pagal dienas", "chart-mood")}
-        {renderChart(cravingChartData, "Potraukis pagal dienas", "chart-craving")}
-        {renderChart(energyChartData, "Energija pagal dienas", "chart-energy")}
+      <div className="p-4 space-y-4 max-w-lg mx-auto pb-8">
+        {renderChart(moodChartData, "Nuotaika", "#007AFF", "chart-mood")}
+        {renderChart(cravingChartData, "Potraukis", "#FF9500", "chart-craving")}
+        {renderChart(energyChartData, "Energija", "#34C759", "chart-energy")}
 
-        <Card data-testid="stats-summary">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Bendra statistika</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              {stats.map((s) => (
-                <div key={s.userId} className="bg-gray-50 rounded-lg p-3 text-center space-y-1">
-                  <div className="text-sm font-semibold">{s.username}</div>
-                  <div className="text-xs text-gray-500">Įrašai: {s.totalCheckins}</div>
-                  <div className="text-xs text-gray-500">Vid. nuotaika: {s.avgMood || "—"}</div>
-                  <div className="text-xs text-gray-500">Vid. potraukis: {s.avgCraving || "—"}</div>
-                  <div className="text-xs text-gray-500">Vid. energija: {s.avgEnergy || "—"}</div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden" data-testid="stats-summary">
+          <div className="px-4 pt-4 pb-2">
+            <div className="text-[13px] font-semibold text-[#8E8E93] uppercase tracking-wider">Bendra statistika</div>
+          </div>
+          <div className="px-4 pb-4 grid grid-cols-2 gap-3">
+            {stats.map((s) => (
+              <div key={s.userId} className="bg-[#F2F2F7] rounded-xl p-3 text-center space-y-1.5">
+                <div className="text-[15px] font-semibold text-[#1C1C1E]">{s.username}</div>
+                <div className="text-[12px] text-[#8E8E93]">{s.totalCheckins} įrašai</div>
+                <div className="text-[12px] text-[#8E8E93]">Nuotaika: <span className="text-[#1C1C1E] font-medium">{s.avgMood || "—"}</span></div>
+                <div className="text-[12px] text-[#8E8E93]">Potraukis: <span className="text-[#1C1C1E] font-medium">{s.avgCraving || "—"}</span></div>
+                <div className="text-[12px] text-[#8E8E93]">Energija: <span className="text-[#1C1C1E] font-medium">{s.avgEnergy || "—"}</span></div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {entries.length > 0 && (
-          <Card data-testid="stats-entries">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Paskutiniai įrašai</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {entries.map((c) => {
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden" data-testid="stats-entries">
+            <div className="px-4 pt-4 pb-2">
+              <div className="text-[13px] font-semibold text-[#8E8E93] uppercase tracking-wider">Paskutiniai įrašai</div>
+            </div>
+            <div className="divide-y divide-[#F2F2F7]">
+              {entries.map((c, idx) => {
                 const d = new Date(c.createdAt);
-                const dateStr = `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+                const dateStr = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}`;
                 return (
-                  <div
-                    key={c.id}
-                    className="bg-gray-50 rounded-lg p-3 text-sm"
-                    data-testid={`checkin-entry-${c.id}`}
-                  >
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="font-medium text-xs">{c.username}</span>
-                      <span className="text-gray-400 text-xs">{dateStr}</span>
+                  <div key={c.id} className="px-4 py-3" data-testid={`checkin-entry-${c.id}`}>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-[14px] font-semibold text-[#1C1C1E]">{c.username}</span>
+                      <span className="text-[12px] text-[#8E8E93]">{dateStr}</span>
                     </div>
-                    <div className="flex flex-wrap gap-3">
-                      <span>{moodEmoji(c.mood)} {c.mood}/5 ({moodLabel(c.mood)})</span>
-                      <span>🍬 {c.craving}/5 ({cravingLabel(c.craving)})</span>
-                      <span>⚡ {c.energy}/5 ({energyLabel(c.energy)})</span>
+                    <div className="flex gap-4 text-[13px] text-[#8E8E93]">
+                      <span>{moodEmoji(c.mood)} {c.mood}/5</span>
+                      <span>🍬 {c.craving}/5</span>
+                      <span>⚡ {c.energy}/5</span>
                     </div>
                     {c.note && (
-                      <div className="text-gray-500 mt-1 italic text-xs">„{c.note}"</div>
+                      <div className="text-[12px] text-[#8E8E93] mt-1 italic">„{c.note}"</div>
                     )}
                   </div>
                 );
               })}
+            </div>
 
-              {hasMore && (
-                <Button
-                  variant="outline"
-                  className="w-full mt-2"
+            {hasMore && (
+              <div className="px-4 pb-4 pt-2">
+                <button
+                  className="w-full py-3 rounded-xl bg-[#F2F2F7] text-[#007AFF] text-[15px] font-medium active:bg-[#E5E5EA] transition-colors disabled:opacity-50"
                   onClick={loadMore}
                   disabled={loadingMore}
                   data-testid="button-load-more"
                 >
                   {loadingMore ? "Kraunasi..." : "Daugiau įrašų"}
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
         {entries.length === 0 && (
-          <div className="text-center text-gray-400 py-8 text-sm">
+          <div className="text-center text-[#8E8E93] py-12 text-[15px]">
             Dar nėra patikrinimų
           </div>
         )}

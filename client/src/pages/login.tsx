@@ -1,9 +1,5 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
@@ -26,16 +22,11 @@ export default function LoginPage() {
     e.preventDefault();
 
     if (!isLogin && !/^\d{4,6}$/.test(password)) {
-      toast({
-        title: "Klaida",
-        description: "PIN kodas turi būti 4-6 skaitmenų",
-        variant: "destructive",
-      });
+      toast({ title: "Klaida", description: "PIN kodas turi būti 4-6 skaitmenų", variant: "destructive" });
       return;
     }
 
     setLoading(true);
-
     try {
       const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
       const res = await fetch(endpoint, {
@@ -43,43 +34,39 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Authentication failed");
-      }
-
+      if (!res.ok) throw new Error(data.error || "Authentication failed");
       setLocation("/");
     } catch (error: any) {
-      toast({
-        title: "Klaida",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Klaida", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center" data-testid="text-title">
-            Be saldumynų
-          </CardTitle>
-          <CardDescription className="text-center">
-            {isLogin ? "Prisijunkite prie savo paskyros" : "Sukurkite naują paskyrą"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off" data-lpignore="true" data-1p-ignore>
-            <input type="text" style={{ display: "none" }} tabIndex={-1} aria-hidden="true" />
-            <input type="password" style={{ display: "none" }} tabIndex={-1} aria-hidden="true" />
-            <div className="space-y-2">
-              <Label htmlFor="nc_user_field">Vartotojo vardas</Label>
-              <Input
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F2F2F7] px-5">
+      <div className="w-full max-w-sm">
+        <div className="flex flex-col items-center mb-10">
+          <div className="w-20 h-20 rounded-[22px] bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center shadow-lg mb-4">
+            <span className="text-3xl">🍬</span>
+          </div>
+          <h1 className="text-[28px] font-bold text-[#1C1C1E] tracking-tight" data-testid="text-title">Be saldumynų</h1>
+          <p className="text-[15px] text-[#8E8E93] mt-1">
+            {isLogin ? "Prisijunkite prie paskyros" : "Sukurkite naują paskyrą"}
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} autoComplete="off" data-lpignore="true" data-1p-ignore>
+          <input type="text" style={{ display: "none" }} tabIndex={-1} aria-hidden="true" />
+          <input type="password" style={{ display: "none" }} tabIndex={-1} aria-hidden="true" />
+
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-4">
+            <div className="px-4 py-3.5 border-b border-[#E5E5EA]">
+              <label className="block text-[12px] font-semibold text-[#8E8E93] uppercase tracking-wider mb-1">
+                Vartotojo vardas
+              </label>
+              <input
                 id="nc_user_field"
                 name="nc_user_field"
                 type="text"
@@ -89,12 +76,16 @@ export default function LoginPage() {
                 autoComplete="off"
                 data-lpignore="true"
                 data-1p-ignore
+                placeholder="Vardas"
+                className="w-full text-[17px] text-[#1C1C1E] placeholder-[#C7C7CC] outline-none bg-transparent"
                 data-testid="input-username"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="nc_pin_field">PIN kodas</Label>
-              <Input
+            <div className="px-4 py-3.5">
+              <label className="block text-[12px] font-semibold text-[#8E8E93] uppercase tracking-wider mb-1">
+                PIN kodas
+              </label>
+              <input
                 id="nc_pin_field"
                 name="nc_pin_field"
                 type="password"
@@ -110,29 +101,37 @@ export default function LoginPage() {
                 autoComplete="off"
                 data-lpignore="true"
                 data-1p-ignore
-                placeholder={!isLogin && registrationAllowed ? "4-6 skaitmenų" : ""}
+                placeholder={!isLogin && registrationAllowed ? "4–6 skaitmenų" : "••••"}
+                className="w-full text-[17px] text-[#1C1C1E] placeholder-[#C7C7CC] outline-none bg-transparent"
                 data-testid="input-password"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading} data-testid="button-submit">
-              {loading ? "Kraunasi..." : isLogin ? "Prisijungti" : "Registruotis"}
-            </Button>
-          </form>
-          {registrationAllowed && (
-            <div className="mt-4 text-center text-sm">
-              {isLogin ? "Neturite paskyros?" : "Jau turite paskyrą?"}{" "}
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-primary hover:underline"
-                data-testid="button-toggle-mode"
-              >
-                {isLogin ? "Registruotis" : "Prisijungti"}
-              </button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 rounded-2xl bg-[#007AFF] text-white text-[17px] font-semibold shadow-sm active:bg-[#0062CC] transition-colors disabled:opacity-50"
+            data-testid="button-submit"
+          >
+            {loading ? "Kraunasi..." : isLogin ? "Prisijungti" : "Registruotis"}
+          </button>
+        </form>
+
+        {registrationAllowed && (
+          <p className="text-center text-[15px] text-[#8E8E93] mt-6">
+            {isLogin ? "Neturite paskyros? " : "Jau turite paskyrą? "}
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-[#007AFF] font-medium"
+              data-testid="button-toggle-mode"
+            >
+              {isLogin ? "Registruotis" : "Prisijungti"}
+            </button>
+          </p>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,9 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Menu, X, Send, Home, SmilePlus, BarChart3, LogOut, Reply, XCircle, Trophy } from "lucide-react";
@@ -291,109 +287,122 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-lg text-gray-500">Kraunasi...</div>
+      <div className="h-screen flex items-center justify-center bg-[#F2F2F7]">
+        <div className="text-[15px] text-[#8E8E93]">Kraunasi...</div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50" data-testid="dashboard-page">
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-4 py-2.5 flex items-center justify-between shrink-0 shadow-md">
-        <div className="flex flex-col gap-0.5 min-w-0">
-          <span className="text-base font-semibold truncate" data-testid="text-streak">
-            Be saldumynų: {streak.days} d. {streak.hours} val. {streak.minutes} min.
-          </span>
-          <div className="flex items-center gap-2 text-xs text-white/80" data-testid="online-status">
-            {onlineUsers.map((u) => (
-              <span key={u.userId} className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-green-400 inline-block animate-pulse" />
-                {u.username}
-              </span>
-            ))}
-            {onlineUsers.length === 0 && (
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />
-                Niekas neprisijungęs
-              </span>
-            )}
+    <div className="h-screen flex flex-col bg-[#F2F2F7]" data-testid="dashboard-page">
+      {/* iOS-style frosted glass header */}
+      <header className="sticky top-0 z-50 ios-header px-4 pt-2 pb-2 shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-[17px] font-semibold text-[#1C1C1E] truncate" data-testid="text-streak">
+              🍬 {streak.days}d {streak.hours}h {streak.minutes}m
+            </span>
+            <div className="flex items-center gap-3 mt-0.5" data-testid="online-status">
+              {onlineUsers.map((u) => (
+                <span key={u.userId} className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-[#34C759] inline-block animate-pulse" />
+                  <span className="text-[12px] text-[#8E8E93]">{u.username}</span>
+                </span>
+              ))}
+              {onlineUsers.length === 0 && (
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-[#C7C7CC] inline-block" />
+                  <span className="text-[12px] text-[#C7C7CC]">Niekas neprisijungęs</span>
+                </span>
+              )}
+            </div>
           </div>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            data-testid="button-menu"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-[#F2F2F7] active:bg-[#E5E5EA] transition-colors ml-3"
+          >
+            {menuOpen ? <X className="h-5 w-5 text-[#007AFF]" /> : <Menu className="h-5 w-5 text-[#007AFF]" />}
+          </button>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setMenuOpen(!menuOpen)}
-          data-testid="button-menu"
-          className="shrink-0"
-        >
-          {menuOpen ? <X className="h-6 w-6 text-white" /> : <Menu className="h-6 w-6 text-white" />}
-        </Button>
       </header>
+
+      {/* iOS-style dropdown menu */}
       {menuOpen && (
-        <div className="absolute top-[57px] right-0 left-0 z-40 bg-white border-b border-gray-200 shadow-lg" data-testid="menu-dropdown">
-          <nav className="flex flex-col">
-            <button
-              className="flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100"
-              onClick={() => { setMenuOpen(false); }}
-              data-testid="menu-home"
-            >
-              <Home className="h-5 w-5 text-gray-500" />
-              <span className="font-medium">Pradžia</span>
-            </button>
-            <button
-              className="flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100"
-              onClick={() => { setMenuOpen(false); openCheckInDialog(); }}
-              data-testid="menu-checkin"
-            >
-              <SmilePlus className="h-5 w-5 text-gray-500" />
-              <span className="font-medium">Dienos savijauta</span>
-            </button>
-            <button
-              className="flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100"
-              onClick={() => { setMenuOpen(false); setLocation("/statistics"); }}
-              data-testid="menu-statistics"
-            >
-              <BarChart3 className="h-5 w-5 text-gray-500" />
-              <span className="font-medium">Statistika</span>
-            </button>
-            <button
-              className="flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 active:bg-gray-100 border-b border-gray-100"
-              onClick={() => { setMenuOpen(false); setBetOpen(true); }}
-              data-testid="menu-bet"
-            >
-              <Trophy className="h-5 w-5 text-gray-500" />
-              <span className="font-medium">Lažybos</span>
-            </button>
-            <button
-              className="flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 active:bg-gray-100 text-red-600"
-              onClick={() => { setMenuOpen(false); logout(); }}
-              data-testid="menu-logout"
-            >
-              <LogOut className="h-5 w-5" />
-              <span className="font-medium">Atsijungti</span>
-            </button>
-          </nav>
+        <div className="absolute top-[62px] right-4 z-40 w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden border border-[#E5E5EA]" data-testid="menu-dropdown">
+          <button
+            className="flex items-center gap-3 px-4 py-3.5 w-full text-left active:bg-[#F2F2F7] border-b border-[#E5E5EA]"
+            onClick={() => { setMenuOpen(false); }}
+            data-testid="menu-home"
+          >
+            <span className="w-7 h-7 rounded-lg bg-[#007AFF] flex items-center justify-center">
+              <Home className="h-4 w-4 text-white" />
+            </span>
+            <span className="text-[15px] font-medium text-[#1C1C1E]">Pradžia</span>
+          </button>
+          <button
+            className="flex items-center gap-3 px-4 py-3.5 w-full text-left active:bg-[#F2F2F7] border-b border-[#E5E5EA]"
+            onClick={() => { setMenuOpen(false); openCheckInDialog(); }}
+            data-testid="menu-checkin"
+          >
+            <span className="w-7 h-7 rounded-lg bg-[#5856D6] flex items-center justify-center">
+              <SmilePlus className="h-4 w-4 text-white" />
+            </span>
+            <span className="text-[15px] font-medium text-[#1C1C1E]">Dienos savijauta</span>
+          </button>
+          <button
+            className="flex items-center gap-3 px-4 py-3.5 w-full text-left active:bg-[#F2F2F7] border-b border-[#E5E5EA]"
+            onClick={() => { setMenuOpen(false); setLocation("/statistics"); }}
+            data-testid="menu-statistics"
+          >
+            <span className="w-7 h-7 rounded-lg bg-[#34C759] flex items-center justify-center">
+              <BarChart3 className="h-4 w-4 text-white" />
+            </span>
+            <span className="text-[15px] font-medium text-[#1C1C1E]">Statistika</span>
+          </button>
+          <button
+            className="flex items-center gap-3 px-4 py-3.5 w-full text-left active:bg-[#F2F2F7] border-b border-[#E5E5EA]"
+            onClick={() => { setMenuOpen(false); setBetOpen(true); }}
+            data-testid="menu-bet"
+          >
+            <span className="w-7 h-7 rounded-lg bg-[#FF9500] flex items-center justify-center">
+              <Trophy className="h-4 w-4 text-white" />
+            </span>
+            <span className="text-[15px] font-medium text-[#1C1C1E]">Lažybos</span>
+          </button>
+          <button
+            className="flex items-center gap-3 px-4 py-3.5 w-full text-left active:bg-[#F2F2F7]"
+            onClick={() => { setMenuOpen(false); logout(); }}
+            data-testid="menu-logout"
+          >
+            <span className="w-7 h-7 rounded-lg bg-[#FF3B30] flex items-center justify-center">
+              <LogOut className="h-4 w-4 text-white" />
+            </span>
+            <span className="text-[15px] font-medium text-[#FF3B30]">Atsijungti</span>
+          </button>
         </div>
       )}
-      <div className="flex-1 overflow-y-auto px-3 py-3" data-testid="chat-area">
-        <div className="space-y-2 max-w-2xl mx-auto">
+
+      {/* Chat area */}
+      <div className="flex-1 overflow-y-auto px-3 py-4" data-testid="chat-area">
+        <div className="space-y-1 max-w-2xl mx-auto">
           {messages.map((msg) => {
             const isOwn = msg.userId === user?.id;
             const isCoach = msg.isCoach;
             const isSurrender = msg.content.includes("pasidavė :)");
             const d = new Date(msg.createdAt);
-            const mm = String(d.getMonth() + 1).padStart(2, "0");
-            const dd = String(d.getDate()).padStart(2, "0");
             const hh = String(d.getHours()).padStart(2, "0");
             const min = String(d.getMinutes()).padStart(2, "0");
-            const timestamp = `${mm}.${dd} / ${hh}:${min}`;
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const dd = String(d.getDate()).padStart(2, "0");
+            const timestamp = `${dd}.${mm} ${hh}:${min}`;
 
             if (isSurrender) {
               return (
-                <div key={msg.id} data-testid={`message-${msg.id}`} className="flex justify-center my-2">
-                  <div className="bg-red-100 border-2 border-red-300 rounded-2xl px-6 py-3 text-center shadow-sm">
-                    <div className="text-red-700 font-bold text-base">{msg.content}</div>
-                    <div className="text-[11px] text-red-400 mt-1">{timestamp}</div>
+                <div key={msg.id} data-testid={`message-${msg.id}`} className="flex justify-center my-3">
+                  <div className="bg-[#FF3B30]/10 border border-[#FF3B30]/30 rounded-2xl px-5 py-2.5 text-center">
+                    <div className="text-[#FF3B30] font-semibold text-[15px]">{msg.content}</div>
+                    <div className="text-[11px] text-[#FF3B30]/60 mt-0.5">{timestamp}</div>
                   </div>
                 </div>
               );
@@ -406,62 +415,60 @@ export default function DashboardPage() {
               <div
                 key={msg.id}
                 data-testid={`message-${msg.id}`}
-                className={`group flex ${isOwn ? "justify-end" : "justify-start"}`}
+                className={`group flex items-end gap-1 ${isOwn ? "justify-end" : "justify-start"}`}
               >
                 {isOwn && (
                   <button
                     onClick={() => setReplyingTo(msg)}
-                    className="self-center mr-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-200"
+                    className="self-center mb-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full"
                     data-testid={`button-reply-${msg.id}`}
                   >
-                    <Reply className="h-4 w-4 text-gray-400" />
+                    <Reply className="h-3.5 w-3.5 text-[#8E8E93]" />
                   </button>
                 )}
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
-                    isCoach
-                      ? "bg-amber-50 border border-amber-200 text-amber-900"
-                      : isOwn
-                        ? "bg-blue-500 text-white"
-                        : "bg-white border border-gray-200 text-gray-900"
-                  }`}
-                >
-                  {msg.replyTo && (
-                    <div
-                      className={`text-xs rounded-lg px-2.5 py-1.5 mb-2 border-l-2 ${
-                        isOwn && !isCoach
-                          ? "bg-blue-400/30 border-blue-200 text-blue-100"
-                          : "bg-gray-100 border-gray-300 text-gray-500"
-                      }`}
-                    >
-                      <span className="font-semibold">{replyAuthor}</span>
-                      <div className="truncate">{replyPreview}</div>
-                    </div>
+                <div className={`max-w-[78%] ${isOwn ? "items-end" : "items-start"} flex flex-col`}>
+                  {!isOwn && !isCoach && (
+                    <span className="text-[12px] text-[#8E8E93] ml-3 mb-0.5">{msg.username || "Partneris"}</span>
                   )}
                   {isCoach && (
-                    <div className="text-xs font-semibold mb-1">🤖 Treneris</div>
+                    <span className="text-[12px] text-[#FF9500] ml-3 mb-0.5">🤖 Treneris</span>
                   )}
-                  {!isOwn && !isCoach && (
-                    <div className="text-xs font-semibold mb-1 text-gray-500">
-                      👤 {msg.username || "Partneris"}
-                    </div>
-                  )}
-                  <div className="whitespace-pre-wrap text-[15px]">{msg.content}</div>
                   <div
-                    className={`text-[11px] mt-1 ${
-                      isOwn && !isCoach ? "text-blue-100" : "text-gray-400"
+                    className={`rounded-[20px] px-4 py-2 ${
+                      isCoach
+                        ? "bg-[#FFF3CD] rounded-tl-md"
+                        : isOwn
+                          ? "bg-[#007AFF] rounded-br-md"
+                          : "bg-white rounded-bl-md shadow-sm"
                     }`}
                   >
-                    {timestamp}
+                    {msg.replyTo && (
+                      <div
+                        className={`text-[12px] rounded-xl px-2.5 py-1.5 mb-2 border-l-[3px] ${
+                          isOwn && !isCoach
+                            ? "bg-white/20 border-white/60 text-white/80"
+                            : "bg-[#F2F2F7] border-[#8E8E93] text-[#8E8E93]"
+                        }`}
+                      >
+                        <div className="font-semibold">{replyAuthor}</div>
+                        <div className="truncate">{replyPreview}</div>
+                      </div>
+                    )}
+                    <div className={`whitespace-pre-wrap text-[15px] leading-relaxed ${
+                      isCoach ? "text-[#7D5A00]" : isOwn ? "text-white" : "text-[#1C1C1E]"
+                    }`}>{msg.content}</div>
+                    <div className={`text-[11px] mt-0.5 ${
+                      isOwn && !isCoach ? "text-white/60" : "text-[#8E8E93]"
+                    }`}>{timestamp}</div>
                   </div>
                 </div>
                 {!isOwn && (
                   <button
                     onClick={() => setReplyingTo(msg)}
-                    className="self-center ml-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-200"
+                    className="self-center mb-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full"
                     data-testid={`button-reply-${msg.id}`}
                   >
-                    <Reply className="h-4 w-4 text-gray-400" />
+                    <Reply className="h-3.5 w-3.5 text-[#8E8E93]" />
                   </button>
                 )}
               </div>
@@ -470,99 +477,99 @@ export default function DashboardPage() {
           <div ref={messagesEndRef} />
         </div>
       </div>
-      <div className="sticky bottom-0 bg-white border-t border-gray-200 px-3 py-3 shrink-0">
+
+      {/* iOS-style input bar */}
+      <div className="ios-header px-3 pt-2 pb-4 shrink-0">
         {replyingTo && (
-          <div className="flex items-center gap-2 max-w-2xl mx-auto mb-2 bg-gray-50 rounded-lg px-3 py-2 border-l-3 border-blue-500" data-testid="reply-preview">
-            <Reply className="h-4 w-4 text-blue-500 shrink-0" />
+          <div className="flex items-center gap-2 mx-1 mb-2 bg-[#F2F2F7] rounded-xl px-3 py-2 border-l-[3px] border-[#007AFF]" data-testid="reply-preview">
+            <Reply className="h-3.5 w-3.5 text-[#007AFF] shrink-0" />
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-semibold text-blue-600">
+              <div className="text-[12px] font-semibold text-[#007AFF]">
                 {replyingTo.isCoach ? "Treneris" : replyingTo.username || "Partneris"}
               </div>
-              <div className="text-xs text-gray-500 truncate">
+              <div className="text-[12px] text-[#8E8E93] truncate">
                 {replyingTo.content.length > 80 ? replyingTo.content.slice(0, 80) + "..." : replyingTo.content}
               </div>
             </div>
-            <button
-              onClick={() => setReplyingTo(null)}
-              className="shrink-0 p-0.5 rounded-full hover:bg-gray-200"
-              data-testid="button-cancel-reply"
-            >
-              <XCircle className="h-4 w-4 text-gray-400" />
+            <button onClick={() => setReplyingTo(null)} className="shrink-0" data-testid="button-cancel-reply">
+              <XCircle className="h-4 w-4 text-[#8E8E93]" />
             </button>
           </div>
         )}
-        <form
-          onSubmit={sendMessage}
-          className="flex gap-2 max-w-2xl mx-auto"
-          data-testid="form-send-message"
-        >
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Rašykite žinutę..."
-            className="flex-1"
-            data-testid="input-message"
-          />
-          <Button type="submit" size="icon" data-testid="button-send">
-            <Send className="h-5 w-5" />
-          </Button>
+        <form onSubmit={sendMessage} className="flex items-end gap-2 max-w-2xl mx-auto" data-testid="form-send-message">
+          <div className="flex-1 bg-white rounded-full border border-[#E5E5EA] px-4 py-2.5 shadow-sm">
+            <input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="iMessage..."
+              className="w-full text-[15px] text-[#1C1C1E] placeholder-[#C7C7CC] outline-none bg-transparent"
+              data-testid="input-message"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-9 h-9 rounded-full bg-[#007AFF] flex items-center justify-center shadow-sm active:bg-[#0062CC] transition-colors shrink-0 disabled:opacity-40"
+            disabled={!newMessage.trim()}
+            data-testid="button-send"
+          >
+            <Send className="h-4 w-4 text-white" />
+          </button>
         </form>
       </div>
-      <Dialog open={checkInOpen} onOpenChange={(open) => {
-        setCheckInOpen(open);
-        if (!open) resetCheckInForm();
-      }}>
-        <DialogContent className="max-w-sm !bg-white dark:!bg-gray-900 !border-2 !border-gray-300 dark:!border-gray-600 shadow-2xl z-[100]">
+
+      {/* Check-in dialog */}
+      <Dialog open={checkInOpen} onOpenChange={(open) => { setCheckInOpen(open); if (!open) resetCheckInForm(); }}>
+        <DialogContent className="max-w-sm !bg-white !border-0 shadow-2xl z-[100] rounded-2xl">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl">
+              <DialogTitle className="text-[17px] font-semibold text-[#1C1C1E]">
                 {historyView ? "Istorija" : isEditing ? "Redaguoti įrašą" : "Dienos savijauta"}
               </DialogTitle>
               {!isEditing && (
                 <button
                   type="button"
                   onClick={() => setHistoryView(!historyView)}
-                  className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+                  className="text-[15px] text-[#007AFF] font-medium"
                   data-testid="button-toggle-history"
                 >
-                  {historyView ? "← Atgal" : "Istorija"}
+                  {historyView ? "Atgal" : "Istorija"}
                 </button>
               )}
               {isEditing && (
                 <button
                   type="button"
                   onClick={() => { setIsEditing(false); setEditingCheckIn(null); setMood(null); setCraving(null); setEnergy(null); setNote(""); setEditDate(""); }}
-                  className="text-xs text-gray-400 hover:text-gray-600 font-medium"
+                  className="text-[15px] text-[#007AFF] font-medium"
                 >
-                  ← Atgal
+                  Atgal
                 </button>
               )}
             </div>
             {!historyView && !isEditing && (
-              <DialogDescription>
+              <DialogDescription className="text-[13px] text-[#8E8E93]">
                 {todayCheckIn ? "Šiandien jau pateikėte savijautą" : "Kaip jaučiuosi šiandien?"}
               </DialogDescription>
             )}
           </DialogHeader>
 
           {historyView ? (
-            <div className="space-y-2 max-h-80 overflow-y-auto">
+            <div className="space-y-1 max-h-80 overflow-y-auto -mx-1">
               {myCheckIns.length === 0 && (
-                <p className="text-sm text-gray-400 text-center py-4">Įrašų nėra</p>
+                <p className="text-[15px] text-[#8E8E93] text-center py-6">Įrašų nėra</p>
               )}
               {myCheckIns.map((ci) => {
                 const d = new Date(ci.createdAt);
                 const label = `${d.getDate()}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`;
                 return (
-                  <div key={ci.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2.5">
-                    <div className="text-sm">
-                      <span className="font-medium text-gray-700">{label}</span>
-                      <span className="text-gray-400 ml-2">N:{ci.mood} P:{ci.craving} E:{ci.energy}</span>
-                      {ci.note && <div className="text-xs text-gray-400 truncate max-w-[180px]">{ci.note}</div>}
+                  <div key={ci.id} className="flex items-center justify-between bg-[#F2F2F7] rounded-xl px-3 py-3">
+                    <div>
+                      <span className="text-[15px] font-medium text-[#1C1C1E]">{label}</span>
+                      <span className="text-[13px] text-[#8E8E93] ml-2">N:{ci.mood} P:{ci.craving} E:{ci.energy}</span>
+                      {ci.note && <div className="text-[12px] text-[#8E8E93] truncate max-w-[180px]">{ci.note}</div>}
                     </div>
                     <button
                       onClick={() => startEditingCheckIn(ci)}
-                      className="text-xs text-blue-500 hover:text-blue-700 font-medium shrink-0 ml-2"
+                      className="text-[15px] text-[#007AFF] font-medium shrink-0 ml-2"
                       data-testid={`button-edit-checkin-${ci.id}`}
                     >
                       Redaguoti
@@ -572,165 +579,119 @@ export default function DashboardPage() {
               })}
             </div>
           ) : todayCheckIn && !isEditing ? (
-            <div className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                <div>Nuotaika: <strong>{todayCheckIn.mood}/5</strong></div>
-                <div>Potraukis: <strong>{todayCheckIn.craving}/5</strong></div>
-                <div>Energija: <strong>{todayCheckIn.energy}/5</strong></div>
-                {todayCheckIn.note && <div>Pastaba: <em>{todayCheckIn.note}</em></div>}
+            <div className="space-y-3">
+              <div className="bg-[#F2F2F7] rounded-2xl p-4 space-y-2">
+                <div className="flex justify-between text-[15px]"><span className="text-[#8E8E93]">Nuotaika</span><strong className="text-[#1C1C1E]">{todayCheckIn.mood}/5</strong></div>
+                <div className="flex justify-between text-[15px]"><span className="text-[#8E8E93]">Potraukis</span><strong className="text-[#1C1C1E]">{todayCheckIn.craving}/5</strong></div>
+                <div className="flex justify-between text-[15px]"><span className="text-[#8E8E93]">Energija</span><strong className="text-[#1C1C1E]">{todayCheckIn.energy}/5</strong></div>
+                {todayCheckIn.note && <div className="text-[13px] text-[#8E8E93] italic">{todayCheckIn.note}</div>}
               </div>
-              <Button
-                className="w-full"
-                variant="outline"
+              <button
+                className="w-full py-3 rounded-2xl bg-[#F2F2F7] text-[#007AFF] text-[15px] font-medium active:bg-[#E5E5EA] transition-colors"
                 onClick={() => startEditingCheckIn(todayCheckIn)}
                 data-testid="button-edit-checkin"
               >
                 Redaguoti šiandienos įrašą
-              </Button>
+              </button>
             </div>
           ) : (
-          <form onSubmit={submitCheckIn} className="space-y-5">
+          <form onSubmit={submitCheckIn} className="space-y-4">
             {isEditing && (
-              <div className="space-y-1">
-                <Label className="text-sm font-medium">Data</Label>
+              <div className="bg-[#F2F2F7] rounded-xl px-4 py-2.5">
+                <label className="block text-[12px] font-semibold text-[#8E8E93] uppercase tracking-wider mb-1">Data</label>
                 <input
                   type="date"
                   value={editDate}
                   onChange={(e) => setEditDate(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  className="w-full text-[17px] text-[#1C1C1E] outline-none bg-transparent"
                   data-testid="input-edit-date"
                 />
               </div>
             )}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Nuotaika</Label>
-              <div className="flex justify-between gap-1">
-                {[1, 2, 3, 4, 5].map((val) => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => setMood(val)}
-                    className={`w-12 h-12 rounded-full text-sm font-semibold transition-all ${
-                      mood === val
-                        ? "bg-purple-500 text-white scale-110 shadow-md"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                    data-testid={`button-mood-${val}`}
-                  >
-                    {val}
-                  </button>
-                ))}
+            {[
+              { label: "Nuotaika", key: "mood", val: mood, set: setMood, activeColor: "bg-[#5856D6]", low: "Bloga", high: "Puiki" },
+              { label: "Potraukis", key: "craving", val: craving, set: setCraving, activeColor: "bg-[#FF9500]", low: "Nenoriu", high: "Labai noriu" },
+              { label: "Energija", key: "energy", val: energy, set: setEnergy, activeColor: "bg-[#34C759]", low: "Nėra jėgų", high: "Skraidau" },
+            ].map(({ label, key, val, set, activeColor, low, high }) => (
+              <div key={key} className="space-y-2">
+                <div className="text-[13px] font-semibold text-[#8E8E93] uppercase tracking-wider">{label}</div>
+                <div className="flex justify-between gap-2">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => set(n)}
+                      className={`flex-1 h-11 rounded-xl text-[15px] font-semibold transition-all ${
+                        val === n ? `${activeColor} text-white shadow-sm scale-105` : "bg-[#F2F2F7] text-[#1C1C1E]"
+                      }`}
+                      data-testid={`button-${key}-${n}`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex justify-between text-[11px] text-[#C7C7CC] px-1">
+                  <span>{low}</span><span>{high}</span>
+                </div>
               </div>
-              <div className="flex justify-between text-[11px] text-gray-400 px-1">
-                <span>Bloga</span>
-                <span>Puiki</span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Potraukis</Label>
-              <div className="flex justify-between gap-1">
-                {[1, 2, 3, 4, 5].map((val) => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => setCraving(val)}
-                    className={`w-12 h-12 rounded-full text-sm font-semibold transition-all ${
-                      craving === val
-                        ? "bg-orange-500 text-white scale-110 shadow-md"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                    data-testid={`button-craving-${val}`}
-                  >
-                    {val}
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-between text-[11px] text-gray-400 px-1">
-                <span>Nenoriu</span>
-                <span>Labai noriu</span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Energija</Label>
-              <div className="flex justify-between gap-1">
-                {[1, 2, 3, 4, 5].map((val) => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => setEnergy(val)}
-                    className={`w-12 h-12 rounded-full text-sm font-semibold transition-all ${
-                      energy === val
-                        ? "bg-green-500 text-white scale-110 shadow-md"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                    data-testid={`button-energy-${val}`}
-                  >
-                    {val}
-                  </button>
-                ))}
-              </div>
-              <div className="flex justify-between text-[11px] text-gray-400 px-1">
-                <span>Nėra jėgų</span>
-                <span>Skraidau</span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Pastaba</Label>
-              <Textarea
+            ))}
+            <div className="space-y-1.5">
+              <div className="text-[13px] font-semibold text-[#8E8E93] uppercase tracking-wider">Pastaba</div>
+              <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Kaip praėjo diena..."
                 rows={3}
+                className="w-full bg-[#F2F2F7] rounded-xl px-4 py-3 text-[15px] text-[#1C1C1E] placeholder-[#C7C7CC] outline-none resize-none"
                 data-testid="input-note"
               />
             </div>
-            <Button
+            <button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
               disabled={submittingCheckIn}
+              className="w-full py-3.5 rounded-2xl bg-[#007AFF] text-white text-[17px] font-semibold active:bg-[#0062CC] transition-colors disabled:opacity-50"
               data-testid="button-submit-checkin"
             >
               {submittingCheckIn ? "Saugoma..." : isEditing ? "Atnaujinti" : "Pateikti"}
-            </Button>
+            </button>
           </form>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Bet dialog */}
       <Dialog open={betOpen} onOpenChange={(open) => { setBetOpen(open); if (!open) setBetConfirmed(false); }}>
-        <DialogContent className="max-w-sm !bg-white dark:!bg-gray-900 !border-2 !border-gray-300 dark:!border-gray-600 shadow-2xl z-[100]">
+        <DialogContent className="max-w-sm !bg-white !border-0 shadow-2xl z-[100] rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl flex items-center gap-2" data-testid="dialog-title-bet">
-              <Trophy className="h-5 w-5 text-amber-500" />
+            <DialogTitle className="text-[17px] font-semibold text-[#1C1C1E] flex items-center gap-2" data-testid="dialog-title-bet">
+              <Trophy className="h-5 w-5 text-[#FF9500]" />
               Lažybos
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="space-y-4 pt-1">
+            <div className="bg-[#FF3B30]/8 border border-[#FF3B30]/20 rounded-2xl p-4">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={betConfirmed}
                   onChange={(e) => setBetConfirmed(e.target.checked)}
-                  className="mt-1 h-5 w-5 accent-red-600 shrink-0"
+                  className="mt-1 h-5 w-5 accent-[#FF3B30] shrink-0"
                   data-testid="checkbox-surrender"
                 />
                 <div>
-                  <span className="font-semibold text-red-800 text-base">Negaliu be cukraus - pasiduodu :)</span>
-                  <p className="text-sm text-red-600 leading-relaxed mt-1">Pažymiu, kad arba jau prisivalgiau, arba planuoju prisivalgyti saldumynų. Suprantu, kad pralaimėjau lažybas ir savo draugą vaišinsiu pietumis arba vakariene. Pasirūpinsiu, kad draugas būtų sotus ir laimingas :)</p>
+                  <span className="font-semibold text-[#FF3B30] text-[15px]">Negaliu be cukraus - pasiduodu :)</span>
+                  <p className="text-[13px] text-[#FF3B30]/80 leading-relaxed mt-1.5">Pažymiu, kad arba jau prisivalgiau, arba planuoju prisivalgyti saldumynų. Suprantu, kad pralaimėjau lažybas ir savo draugą vaišinsiu pietumis arba vakariene. Pasirūpinsiu, kad draugas būtų sotus ir laimingas :)</p>
                 </div>
               </label>
             </div>
-            <Button
+            <button
               onClick={surrender}
               disabled={!betConfirmed}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 rounded-2xl bg-[#FF3B30] text-white text-[17px] font-semibold active:bg-[#D63429] transition-colors disabled:opacity-40"
               data-testid="button-surrender"
             >
               Pasiduodu
-            </Button>
+            </button>
           </div>
         </DialogContent>
       </Dialog>
