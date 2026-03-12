@@ -15,8 +15,10 @@ interface SessionData {
 
 async function getAIResponse(settings: any, systemPrompt: string, userPrompt: string): Promise<string | null> {
   const provider = settings.aiProvider || "openai";
+  console.log(`[AI] Provider: ${provider}, anthropicKey: ${settings.anthropicApiKey ? "SET" : "NOT SET"}, openaiKey: ${settings.openaiApiKey ? "SET" : "NOT SET"}`);
 
   if (provider === "anthropic" && settings.anthropicApiKey) {
+    console.log(`[AI] Using Anthropic model: ${settings.anthropicModel || "claude-3-5-sonnet-20241022"}`);
     const anthropic = new Anthropic({ apiKey: settings.anthropicApiKey });
     const response = await anthropic.messages.create({
       model: settings.anthropicModel || "claude-3-5-sonnet-20241022",
@@ -27,6 +29,7 @@ async function getAIResponse(settings: any, systemPrompt: string, userPrompt: st
     const block = response.content[0];
     return block.type === "text" ? block.text : null;
   } else if (settings.openaiApiKey) {
+    console.log(`[AI] Using OpenAI model: ${settings.openaiModel || "gpt-4o-mini"}`);
     const openai = new OpenAI({ apiKey: settings.openaiApiKey });
     const completion = await openai.chat.completions.create({
       model: settings.openaiModel || "gpt-4o-mini",
@@ -38,6 +41,7 @@ async function getAIResponse(settings: any, systemPrompt: string, userPrompt: st
     return completion.choices[0]?.message?.content ?? null;
   }
 
+  console.warn(`[AI] No API key configured for provider: ${provider}`);
   return null;
 }
 
@@ -338,9 +342,18 @@ Atsakyk lietuviškai, trumpai ir konkrečiai.`;
               }).returning();
 
               broadcastMessage(wss, { ...coachMsg, username: null });
+            } else {
+              console.warn("[AI] Chat coach returned empty response");
             }
-          } catch (error) {
-            console.error("Failed to get coach response:", error);
+          } catch (error: any) {
+            console.error("[AI] Chat coach error:", error?.message || error);
+            const errText = error?.status === 401 ? "Neteisingas API raktas. Patikrink admin nustatymus." :
+                            error?.status === 429 ? "Viršytas API limitas. Bandyk vėliau." :
+                            `AI klaida – ${error?.message || "nežinoma klaida"}`;
+            try {
+              const [errMsg] = await db.insert(messages).values({ userId: null, content: errText, isCoach: true }).returning();
+              if (wss) broadcastMessage(wss, { ...errMsg, username: null });
+            } catch {}
           }
         })();
       }
@@ -561,9 +574,18 @@ Parašyk palaikantį atsakymą lietuviškai (3-6 sakiniais). Palygink su ankstes
               }).returning();
 
               broadcastMessage(wss, { ...coachMsg, username: null });
+            } else {
+              console.warn("[AI] Check-in coach returned empty response");
             }
-          } catch (error) {
-            console.error("Failed to get coach response:", error);
+          } catch (error: any) {
+            console.error("[AI] Check-in coach error:", error?.message || error);
+            const errText = error?.status === 401 ? "Neteisingas API raktas. Patikrink admin nustatymus." :
+                            error?.status === 429 ? "Viršytas API limitas. Bandyk vėliau." :
+                            `AI klaida – ${error?.message || "nežinoma klaida"}`;
+            try {
+              const [errMsg] = await db.insert(messages).values({ userId: null, content: errText, isCoach: true }).returning();
+              if (wss) broadcastMessage(wss, { ...errMsg, username: null });
+            } catch {}
           }
         })();
       }
