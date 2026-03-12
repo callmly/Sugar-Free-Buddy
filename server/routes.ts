@@ -4,12 +4,41 @@ import { users, messages, checkIns, adminSettings } from "@shared/schema";
 import { eq, desc, and, gte, lt, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import { WebSocketServer } from "ws";
 
 declare module "express-session" {
 interface SessionData {
     userId: string;
 }
+}
+
+async function getAIResponse(settings: any, systemPrompt: string, userPrompt: string): Promise<string | null> {
+  const provider = settings.aiProvider || "openai";
+
+  if (provider === "anthropic" && settings.anthropicApiKey) {
+    const anthropic = new Anthropic({ apiKey: settings.anthropicApiKey });
+    const response = await anthropic.messages.create({
+      model: settings.anthropicModel || "claude-3-5-sonnet-20241022",
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+    const block = response.content[0];
+    return block.type === "text" ? block.text : null;
+  } else if (settings.openaiApiKey) {
+    const openai = new OpenAI({ apiKey: settings.openaiApiKey });
+    const completion = await openai.chat.completions.create({
+      model: settings.openaiModel || "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    });
+    return completion.choices[0]?.message?.content ?? null;
+  }
+
+  return null;
 }
 
 function broadcastMessage(wss: WebSocketServer, message: any) {
@@ -266,7 +295,7 @@ app.post("/api/messages", requireAuth, async (req, res) => {
         (async () => {
           try {
             const [settings] = await db.select().from(adminSettings).limit(1);
-            if (!settings?.openaiApiKey) return;
+            if (!settings?.openaiApiKey && !settings?.anthropicApiKey) return;
 
             const relapseTime = settings.relapseTime;
             const now = new Date();
@@ -290,8 +319,6 @@ app.post("/api/messages", requireAuth, async (req, res) => {
               });
             }
 
-            const openai = new OpenAI({ apiKey: settings.openaiApiKey });
-
             const systemPrompt = settings.chatInstructions || `Tu esi palaikantis treneris, padedantis žmonėms atsisakyti saldumynų. Atsakyk lietuviškai, 3-6 sakiniais. Būk šiltas, draugiškas ir pasiūlyk konkrečių patarimų. Pridėk švelnų humorą.`;
 
             const userPrompt = `Vartotojas ${senderName} kreipiasi į tave:
@@ -301,15 +328,7 @@ Dabartinė serija: ${days} dienų ir ${hours} valandų be saldumynų.${chatConte
 
 Atsakyk lietuviškai, trumpai ir konkrečiai.`;
 
-            const completion = await openai.chat.completions.create({
-              model: settings.openaiModel || "gpt-4o-mini",
-              messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userPrompt },
-              ],
-            });
-
-            const coachResponse = completion.choices[0]?.message?.content;
+            const coachResponse = await getAIResponse(settings, systemPrompt, userPrompt);
 
             if (coachResponse) {
               const [coachMsg] = await db.insert(messages).values({
@@ -495,7 +514,7 @@ app.post("/api/checkins", requireAuth, async (req, res) => {
         (async () => {
           try {
             const [settings] = await db.select().from(adminSettings).limit(1);
-            if (!settings?.openaiApiKey) return;
+            if (!settings?.openaiApiKey && !settings?.anthropicApiKey) return;
 
             const relapseTime = settings.relapseTime;
             const now = new Date();
@@ -520,8 +539,6 @@ app.post("/api/checkins", requireAuth, async (req, res) => {
               });
             }
 
-            const openai = new OpenAI({ apiKey: settings.openaiApiKey });
-
             const systemPrompt = settings.customInstructions || `Tu esi palaikantis treneris, padedantis žmonėms atsisakyti saldumynų. Atsakyk lietuviškai, 3-6 sakiniais. Būk šiltas, pasiūlyk konkrečių patarimų ir pridėk švelnų humorą. Jei yra ankstesnių patikrinimų, palygink progresą ir pastebėk tendencijas.`;
 
             const userPrompt = `Vartotojas ${senderName} pateikė dienos savijautą:
@@ -534,15 +551,7 @@ Dabartinė serija: ${days} dienų ir ${hours} valandų be saldumynų.${historyTe
 
 Parašyk palaikantį atsakymą lietuviškai (3-6 sakiniais). Palygink su ankstesniais patikrinimais jei jų yra. Pasiūlyk konkretų veiksmą ir pridėk švelnų humorą.`;
 
-            const completion = await openai.chat.completions.create({
-              model: settings.openaiModel || "gpt-4o-mini",
-              messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userPrompt },
-              ],
-            });
-
-            const coachResponse = completion.choices[0]?.message?.content;
+            const coachResponse = await getAIResponse(settings, systemPrompt, userPrompt);
 
             if (coachResponse) {
               const [coachMsg] = await db.insert(messages).values({
@@ -660,7 +669,7 @@ app.get("/api/admin/settings", requireAdmin, async (req, res) => {
 
 app.put("/api/admin/settings", requireAdmin, async (req, res) => {
     try {
-      const { openaiApiKey, openaiModel, customInstructions, chatInstructions, allowRegistration, relapseTime } = req.body;
+      const { openaiApiKey, openaiModel, anthropicApiKey, anthropicModel, aiProvider, customInstructions, chatInstructions, allowRegistration, relapseTime } = req.body;
 
       const [settings] = await db.select().from(adminSettings).limit(1);
 
@@ -670,6 +679,9 @@ app.put("/api/admin/settings", requireAdmin, async (req, res) => {
 
       if (openaiApiKey !== undefined) updateData.openaiApiKey = openaiApiKey;
       if (openaiModel !== undefined) updateData.openaiModel = openaiModel;
+      if (anthropicApiKey !== undefined) updateData.anthropicApiKey = anthropicApiKey;
+      if (anthropicModel !== undefined) updateData.anthropicModel = anthropicModel;
+      if (aiProvider !== undefined) updateData.aiProvider = aiProvider;
       if (customInstructions !== undefined) updateData.customInstructions = customInstructions;
       if (chatInstructions !== undefined) updateData.chatInstructions = chatInstructions;
       if (allowRegistration !== undefined) updateData.allowRegistration = allowRegistration;

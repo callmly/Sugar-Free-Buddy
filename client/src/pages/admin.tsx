@@ -7,6 +7,9 @@ type AdminSettings = {
   id: string;
   openaiApiKey: string | null;
   openaiModel: string;
+  anthropicApiKey: string | null;
+  anthropicModel: string;
+  aiProvider: string;
   customInstructions: string | null;
   chatInstructions: string | null;
   allowRegistration: boolean;
@@ -18,6 +21,9 @@ export default function AdminPage() {
   const [settings, setSettings] = useState<AdminSettings | null>(null);
   const [openaiApiKey, setOpenaiApiKey] = useState("");
   const [openaiModel, setOpenaiModel] = useState("gpt-4o-mini");
+  const [anthropicApiKey, setAnthropicApiKey] = useState("");
+  const [anthropicModel, setAnthropicModel] = useState("claude-3-5-sonnet-20241022");
+  const [aiProvider, setAiProvider] = useState("openai");
   const [customInstructions, setCustomInstructions] = useState("");
   const [chatInstructions, setChatInstructions] = useState("");
   const [allowRegistration, setAllowRegistration] = useState(true);
@@ -39,6 +45,9 @@ export default function AdminPage() {
       setSettings(data);
       setOpenaiApiKey(data.openaiApiKey || "");
       setOpenaiModel(data.openaiModel || "gpt-4o-mini");
+      setAnthropicApiKey(data.anthropicApiKey || "");
+      setAnthropicModel(data.anthropicModel || "claude-3-5-sonnet-20241022");
+      setAiProvider(data.aiProvider || "openai");
       setCustomInstructions(data.customInstructions || "");
       setChatInstructions(data.chatInstructions || "");
       setAllowRegistration(data.allowRegistration !== false);
@@ -60,6 +69,9 @@ export default function AdminPage() {
         body: JSON.stringify({
           openaiApiKey: openaiApiKey || null,
           openaiModel,
+          anthropicApiKey: anthropicApiKey || null,
+          anthropicModel,
+          aiProvider,
           customInstructions: customInstructions || null,
           chatInstructions: chatInstructions || null,
           allowRegistration,
@@ -99,7 +111,37 @@ export default function AdminPage() {
       </div>
 
       <form onSubmit={saveSettings} className="p-4 max-w-lg mx-auto space-y-6 pb-10">
+        {/* AI Provider selector */}
+        <div>
+          <div className="text-[13px] font-semibold text-[#8E8E93] uppercase tracking-wider px-1 mb-2">AI tiekėjas</div>
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden flex">
+            <button
+              type="button"
+              onClick={() => setAiProvider("openai")}
+              className={`flex-1 py-3.5 text-[15px] font-semibold transition-colors ${
+                aiProvider === "openai"
+                  ? "bg-[#007AFF] text-white"
+                  : "text-[#8E8E93] active:bg-[#F2F2F7]"
+              }`}
+            >
+              OpenAI
+            </button>
+            <button
+              type="button"
+              onClick={() => setAiProvider("anthropic")}
+              className={`flex-1 py-3.5 text-[15px] font-semibold transition-colors border-l border-[#E5E5EA] ${
+                aiProvider === "anthropic"
+                  ? "bg-[#CC785C] text-white"
+                  : "text-[#8E8E93] active:bg-[#F2F2F7]"
+              }`}
+            >
+              Anthropic
+            </button>
+          </div>
+        </div>
+
         {/* OpenAI section */}
+        {aiProvider === "openai" && (
         <div>
           <div className="text-[13px] font-semibold text-[#8E8E93] uppercase tracking-wider px-1 mb-2">OpenAI nustatymai</div>
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -128,6 +170,40 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
+        )}
+
+        {/* Anthropic section */}
+        {aiProvider === "anthropic" && (
+        <div>
+          <div className="text-[13px] font-semibold text-[#8E8E93] uppercase tracking-wider px-1 mb-2">Anthropic nustatymai</div>
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-4 py-3.5 border-b border-[#E5E5EA]">
+              <label className="block text-[12px] font-semibold text-[#8E8E93] uppercase tracking-wider mb-1">API Key</label>
+              <input
+                type="password"
+                value={anthropicApiKey}
+                onChange={(e) => setAnthropicApiKey(e.target.value)}
+                placeholder="sk-ant-..."
+                className="w-full text-[17px] text-[#1C1C1E] placeholder-[#C7C7CC] outline-none bg-transparent"
+              />
+            </div>
+            <div className="px-4 py-3.5">
+              <label className="block text-[12px] font-semibold text-[#8E8E93] uppercase tracking-wider mb-2">Modelis</label>
+              <select
+                value={anthropicModel}
+                onChange={(e) => setAnthropicModel(e.target.value)}
+                className="w-full text-[17px] text-[#1C1C1E] outline-none bg-transparent appearance-none"
+              >
+                <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</option>
+                <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+                <option value="claude-3-sonnet-20240229">Claude 3 Sonnet</option>
+                <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        )}
 
         {/* Instructions section */}
         <div>
